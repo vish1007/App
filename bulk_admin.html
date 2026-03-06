@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bulk Question Upload</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:40px;
+background:#f4f6f9;
+}
+
+.container{
+max-width:800px;
+margin:auto;
+background:white;
+padding:30px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+textarea{
+width:100%;
+height:300px;
+font-size:16px;
+margin-top:10px;
+}
+
+button{
+padding:12px 20px;
+margin-top:20px;
+background:#2563eb;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+.example{
+background:#f1f5f9;
+padding:15px;
+border-radius:6px;
+margin-bottom:20px;
+font-family:monospace;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Bulk Question Upload</h2>
+
+<p><b>Paste questions using the following format:</b></p>
+
+<div class="example">
+
+Which planet is known as the Red Planet?<br>
+A. Earth<br>
+B. Mars<br>
+C. Jupiter<br>
+D. Venus<br>
+Answer: B<br><br>
+
+Capital of India?<br>
+A. Delhi<br>
+B. Mumbai<br>
+C. Chennai<br>
+D. Kolkata<br>
+Answer: A
+
+</div>
+
+<textarea id="bulkQuestions" placeholder="Paste questions here..."></textarea>
+
+<br>
+
+<button onclick="uploadQuestions()">Upload Questions</button>
+
+</div>
+
+<script>
+
+const GOOGLE_SCRIPT_URL="https://script.google.com/macros/s/AKfycbyIf55osyMQiEn581AC1iIsvWRs68b0gySO1L6A1wuIgjIniElbO14hxaP3WMISP-GvwA/exec";
+
+function uploadQuestions(){
+
+let text=document.getElementById("bulkQuestions").value;
+
+fetch(GOOGLE_SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+type:"bulkQuestions",
+data:text
+}),
+headers:{"Content-Type":"text/plain"}
+})
+
+.then(r=>r.text())
+.then(res=>alert("Questions uploaded successfully"))
+
+}
+
+</script>
+
+</body>
+</html>
+
+

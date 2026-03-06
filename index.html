@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Secure Online Quiz</title>
+
+<style>
+body{
+font-family:'Segoe UI',sans-serif;
+background:#eef2f7;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:30px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+max-width:700px;
+margin:auto;
+}
+
+button{
+background:#2563eb;
+border:none;
+color:white;
+padding:12px 20px;
+border-radius:5px;
+font-size:16px;
+margin-top:20px;
+cursor:pointer;
+}
+
+button:hover{background:#1d4ed8}
+
+.hidden{display:none}
+
+#timer{
+color:#ef4444;
+font-weight:bold;
+font-size:22px;
+margin-bottom:20px;
+}
+
+.warning{color:red;font-weight:bold}
+
+input{padding:8px;width:250px}
+
+</style>
+</head>
+
+<body>
+
+<div class="card" id="login">
+
+<h2>Student Login</h2>
+
+<label>Name</label><br>
+<input id="name"><br><br>
+
+<label>Application ID</label><br>
+<input id="appId" placeholder="Eg: CDS/2025/9999"><br><br>
+<label>Email</label><br>
+<input id="email" type="email" placeholder="Enter your email"><br><br>
+<button onclick="startTest()">Start Test</button>
+
+<p id="loginWarning" class="warning"></p>
+
+</div>
+
+
+<div class="card hidden" id="quiz">
+
+<h2>Online Test</h2>
+
+<div id="timer"></div>
+
+<p class="warning" id="warning"></p>
+
+<div id="question-container"></div>
+
+<button id="nextBtn" style="display:none" onclick="nextQuestion()">Next</button>
+
+</div>
+
+
+<div class="card hidden" id="result">
+
+<h2>Result</h2>
+
+<p id="scoreMsg"></p>
+
+<p id="percentMsg"></p>
+
+<div id="analysis"></div>
+
+</div>
+
+
+<script>
+
+// GOOGLE SHEET SCRIPT URL
+
+const GOOGLE_SCRIPT_URL="https://script.google.com/macros/s/AKfycbyIf55osyMQiEn581AC1iIsvWRs68b0gySO1L6A1wuIgjIniElbO14hxaP3WMISP-GvwA/exec";
+
+
+let questions = []
+let selectedQuestions=[]
+
+let userAnswers={}
+
+let currentIndex=0
+
+let timer
+
+let time=10*60
+
+let userName
+let appId
+let userEmail
+
+let examStarted=false
+
+let submitted=false
+
+function shuffleArray(array){
+
+for(let i=array.length-1;i>0;i--){
+
+let j = Math.floor(Math.random()*(i+1))
+
+let temp = array[i]
+
+array[i] = array[j]
+
+array[j] = temp
+
+}
+
+}
+async function loadQuestions(){
+
+let res = await fetch(GOOGLE_SCRIPT_URL + "?t=" + Date.now())
+
+questions = await res.json()
+console.log("Questions loaded:", questions)
+
+}
+
+async function checkApplicationId(appId){
+
+let res = await fetch(`${GOOGLE_SCRIPT_URL}?appId=${appId}`)
+
+let result = await res.text()
+
+return result
+
+}
+function validateApplicationId(id){
+
+// length check
+if(id.length !== 13){
+return "Application ID must be 13 characters (Eg: CDS/2025/9999)";
+}
+
+// format check using regex
+let pattern = /^CDS\/\d{4}\/\d{4}$/;
+
+if(!pattern.test(id)){
+return "Application ID must be like CDS/2025/9999 (CDS must be capital)";
+}
+
+return "valid";
+
+}
+
+async function startTest(){
+enterFullscreen() 
+currentIndex = 0;
+userAnswers = {};
+time = 10*60;
+userName=document.getElementById("name").value
+appId=document.getElementById("appId").value.trim()
+userEmail = document.getElementById("email").value.trim()
+// Validate Application ID
+let validation = validateApplicationId(appId)
+
+if(validation !== "valid"){
+document.getElementById("loginWarning").innerText = validation
+return
+}
+if(!userName || !appId){
+document.getElementById("loginWarning").innerText="Enter details"
+return
+}
+if(!userEmail.includes("@")){
+document.getElementById("loginWarning").innerText="Enter valid email"
+return
+}
+let status = await checkApplicationId(appId)
+
+if(status=="exists"){
+alert("You have already attempted this exam")
+return
+}
+
+await loadQuestions()
+if(questions.length==0){
+alert("No questions available")
+return
+}
+
+selectedQuestions=[...questions]
+
+shuffleArray(selectedQuestions)
+
+selectedQuestions=selectedQuestions.slice(0,10)
+
+
+examStarted=true
+
+document.getElementById("login").classList.add("hidden")
+document.getElementById("quiz").classList.remove("hidden")
+
+showQuestion()
+startTimer()
+
+}
+
+
+function enterFullscreen(){
+document.documentElement.requestFullscreen().catch(()=>{})
+}
+
+
+function startTimer(){
+updateTimer()
+
+timer=setInterval(()=>{
+
+ time--
+ updateTimer()
+
+ if(time<=0){
+ clearInterval(timer)
+ submitTest()
+ }
+
+},1000)
+
+}
+
+
+function updateTimer(){
+let m=Math.floor(time/60)
+let s=time%60
+
+document.getElementById("timer").innerText=`Time Left: ${m}m ${s}s`
+}
+function saveAnswer(option){
+
+userAnswers[currentIndex] = option
+
+document.getElementById("nextBtn").style.display="inline"
+
+}
+
+function showQuestion(){
+
+let q=selectedQuestions[currentIndex]
+
+let options=[...q.options]
+shuffleArray(options)
+
+let html=`<h3>Question ${currentIndex+1} of ${selectedQuestions.length}</h3>
+<h3>${q.q}</h3>`
+
+options.forEach(o=>{
+html+=`<input type="radio" name="opt" value="${o}" onclick="saveAnswer('${o}')"> ${o}<br>`
+})
+
+
+document.getElementById("question-container").innerHTML=html
+
+document.getElementById("nextBtn").style.display="none"
+
+if(currentIndex==selectedQuestions.length-1)
+ document.getElementById("nextBtn").innerText="Submit"
+
+}
+
+
+function enableNext(){
+ document.getElementById("nextBtn").style.display="inline"
+}
+
+
+function nextQuestion(){
+
+if(currentIndex < selectedQuestions.length-1){
+ currentIndex++
+ showQuestion()
+}
+else{
+ submitTest()
+}
+
+}
+
+
+function submitTest(){
+
+if(submitted) return
+submitted=true
+
+clearInterval(timer)
+let score=0
+let analysis="<ol>"
+let analysisData=[]
+
+selectedQuestions.forEach((q,i)=>{
+
+let ans=userAnswers[i] || "Not Answered"
+
+if(ans===q.answer) score++
+
+analysisData.push({
+question:q.q,
+options:q.options,
+chosen:ans,
+correct:q.answer
+})
+
+analysis+=`<li>${q.q}<br>Your: ${ans}<br>Correct: ${q.answer}</li><br>`
+
+})
+
+analysis+="</ol>"
+
+let percent=((score/selectedQuestions.length)*100).toFixed(2)
+
+sendToSheet(score,percent,analysisData)
+
+document.getElementById("quiz").classList.add("hidden")
+document.getElementById("result").classList.remove("hidden")
+
+document.getElementById("scoreMsg").innerText=`Score: ${score}/${selectedQuestions.length}`
+document.getElementById("percentMsg").innerText=`Percentage: ${percent}%`
+
+document.getElementById("analysis").innerHTML=analysis
+
+}
+
+async function sendToSheet(score,percent,analysisData){
+
+try{
+
+let res = await fetch(GOOGLE_SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+name:userName,
+appId:appId,
+email:userEmail,
+score:score,
+percent:percent,
+total:selectedQuestions.length,
+questions:analysisData
+}),
+headers:{"Content-Type":"text/plain"}
+})
+
+let text = await res.text()
+
+console.log("Server response:",text)
+
+}catch(err){
+
+console.error("Error sending result:",err)
+
+}
+
+}
+
+
+// TAB SWITCH DETECTION
+
+document.addEventListener("visibilitychange",()=>{
+if(document.hidden && examStarted){
+document.getElementById("warning").innerText="Tab switch detected. Test submitted.";
+submitTest()
+}
+})
+
+
+// FULLSCREEN EXIT DETECTION
+
+document.addEventListener("fullscreenchange",()=>{
+if(!document.fullscreenElement && examStarted){
+document.getElementById("warning").innerText="Fullscreen exited. Test submitted.";
+submitTest()
+}
+})
+window.addEventListener("blur", function () {
+    if (examStarted) {
+        document.getElementById("warning").innerText =
+            "You left the exam window. Test submitted.";
+        submitTest();
+    }
+});
+
+// DISABLE RIGHT CLICK
+
+document.addEventListener("contextmenu",e=>e.preventDefault())
+
+// DISABLE COPY
+
+document.addEventListener("copy",e=>e.preventDefault())
+
+// DISABLE PASTE
+
+document.addEventListener("paste",e=>e.preventDefault())
+
+
+// ESC KEY SUBMIT
+
+document.addEventListener("keydown",function(e){
+if(e.key=="Escape" && examStarted){
+submitTest()
+}
+})
+
+</script>
+
+</body>
+</html>
