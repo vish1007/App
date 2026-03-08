@@ -62,7 +62,10 @@ input{padding:8px;width:250px}
 <label>Email</label><br>
 <input id="email" type="email" placeholder="Enter your email"><br><br>
 <button id="startBtn" onclick="startTest()">Start Test</button>
-
+<div id="countdownBox" style="text-align:center;margin-top:20px;display:none">
+<h1 id="countNumber" style="font-size:80px;color:#2563eb;margin:0"></h1>
+<p style="font-size:18px">Test starting...</p>
+</div>
 <p id="loginWarning" class="warning"></p>
 
 </div>
@@ -190,7 +193,36 @@ return "Application ID must be like CDS/2025/9999 (CDS must be capital)";
 return "valid";
 
 }
+function startCountdown(){
 
+let count = 10
+
+document.getElementById("countdownBox").style.display = "block"
+document.getElementById("countNumber").innerText = count
+
+let interval = setInterval(()=>{
+
+count--
+
+document.getElementById("countNumber").innerText = count
+
+if(count === 0){
+
+clearInterval(interval)
+
+enterFullscreen()
+
+document.getElementById("login").classList.add("hidden")
+document.getElementById("quiz").classList.remove("hidden")
+
+showQuestion()
+startTimer()
+
+}
+
+},1000)
+
+}
 async function startTest(){
 enterFullscreen()
 currentIndex = 0;
@@ -221,7 +253,7 @@ return
 // disable button after validation success
 document.getElementById("startBtn").disabled = true
 document.getElementById("startBtn").innerText = "Starting..."
-
+startCountdown()
 
 let status = await checkApplicationId(appId)
 
