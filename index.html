@@ -3,13 +3,48 @@
 <head>
 <title>Secure Online Quiz</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
 body{
 font-family:'Segoe UI',sans-serif;
 background:#eef2f7;
 padding:20px;
 }
+.optionBox{
+display:block;
+padding:12px;
+margin:8px 0;
+border:1px solid #ccc;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+}
 
+.optionBox input{
+margin-right:10px;
+}
+
+.optionBox:hover{
+background:#f0f6ff;
+}
+
+@media (max-width:600px){
+
+.card{
+padding:20px;
+}
+
+h3{
+font-size:18px;
+}
+
+button{
+width:100%;
+font-size:18px;
+}
+
+}
 .card{
 background:white;
 padding:30px;
@@ -340,7 +375,12 @@ let html=`<h3>Question ${currentIndex+1} of ${selectedQuestions.length}</h3>
 <h3>${q.q}</h3>`
 
 options.forEach(o=>{
-html+=`<input type="radio" name="opt" value="${o.text}" onclick="saveAnswer('${o.text}')"> ${o.text}<br>`
+html+=`
+<label class="optionBox">
+<input type="radio" name="opt" value="${o.text}" onclick="saveAnswer('${o.text}')">
+<span>${o.text}</span>
+</label>
+`
 })
 
 document.getElementById("question-container").innerHTML=html
