@@ -61,7 +61,7 @@ input{padding:8px;width:250px}
 <input id="appId" placeholder="Eg: CDS/2025/9999"><br><br>
 <label>Email</label><br>
 <input id="email" type="email" placeholder="Enter your email"><br><br>
-<button onclick="startTest()">Start Test</button>
+<button id="startBtn" onclick="startTest()">Start Test</button>
 
 <p id="loginWarning" class="warning"></p>
 
@@ -192,13 +192,15 @@ return "valid";
 }
 
 async function startTest(){
-enterFullscreen() 
+enterFullscreen()
 currentIndex = 0;
 userAnswers = {};
 time = 10*60;
+
 userName=document.getElementById("name").value
 appId=document.getElementById("appId").value.trim()
 userEmail = document.getElementById("email").value.trim()
+
 // Validate Application ID
 let validation = validateApplicationId(appId)
 
@@ -206,14 +208,21 @@ if(validation !== "valid"){
 document.getElementById("loginWarning").innerText = validation
 return
 }
+
 if(!userName || !appId){
 document.getElementById("loginWarning").innerText="Enter details"
 return
 }
+
 if(!userEmail.includes("@")){
 document.getElementById("loginWarning").innerText="Enter valid email"
 return
 }
+// disable button after validation success
+document.getElementById("startBtn").disabled = true
+document.getElementById("startBtn").innerText = "Starting..."
+
+
 let status = await checkApplicationId(appId)
 
 if(status=="exists"){
@@ -373,7 +382,8 @@ document.getElementById("result").classList.remove("hidden")
 document.getElementById("scoreMsg").innerText=`Score: ${score}/${selectedQuestions.length}`
 document.getElementById("percentMsg").innerText=`Percentage: ${percent}%`
 
-document.getElementById("analysis").innerHTML=analysis
+document.getElementById("analysis").innerHTML =
+"Detailed response sheet will be sent to your email after 30 minutes.";
 
 }
 
