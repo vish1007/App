@@ -56,6 +56,36 @@ function doPost(e) {
 
   return textResponse_("Invalid request");
 }
+function saveResult(data) {
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Results");
+
+  const submissionId = data.id;
+
+  const allData = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][0] == submissionId) {
+      return { status: "duplicate" };
+    }
+  }
+
+  sheet.appendRow([
+    submissionId,
+    new Date(),
+    data.examId,
+    data.name,
+    data.appId,
+    data.email,
+    data.score,
+    data.percent,
+    data.total,
+    JSON.stringify(data.questions)
+  ]);
+
+  return { status: "saved" };
+}
+
 
 function getPublicExamMetaResponse_(ss, examId) {
   const exam = getExamById_(ss, examId);
@@ -350,13 +380,28 @@ function bulkUploadQuestions_(ss, data) {
 }
 
 function saveResultResponse_(ss, data) {
+
   const exam = getExamById_(ss, data.examId);
   if (!exam) {
     return jsonResponse_({ status: "not_found" });
   }
 
   const resultsSheet = ss.getSheetByName("Results");
+
+  const submissionId = data.id;
+
+  // 🔍 CHECK DUPLICATE
+  const allData = resultsSheet.getDataRange().getValues();
+
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][0] == submissionId) {
+      return jsonResponse_({ status: "duplicate" });
+    }
+  }
+
+  // ✅ SAVE (with submissionId as first column)
   resultsSheet.appendRow([
+    submissionId,                 // NEW COLUMN A
     new Date(),
     exam.examId,
     exam.teacherUsername,
@@ -370,9 +415,8 @@ function saveResultResponse_(ss, data) {
     "NO"
   ]);
 
-  return textResponse_("saved");
+  return jsonResponse_({ status: "saved" });
 }
-
 function checkAndSendEmails() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const resultsSheet = ss.getSheetByName("Results");

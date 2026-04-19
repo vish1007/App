@@ -626,6 +626,13 @@ function submitTest() {
 
 	const percent = selectedQuestions.length ? ((score / selectedQuestions.length) * 100).toFixed(2) : "0.00";
 	const passed = Number(percent) >= getSettings().passPercentage;
+	// backup before sending
+	localStorage.setItem("lastSubmissionBackup", JSON.stringify({
+		name: userName,
+		appId: appId,
+		email: userEmail,
+		examId: activeExamId
+	}));
 	sendToSheet(score, percent, analysisData);
 
 	document.getElementById("quiz").classList.add("hidden");
@@ -643,26 +650,42 @@ function submitTest() {
 }
 
 async function sendToSheet(score, percent, analysisData) {
-	try {
-		await fetch(GOOGLE_SCRIPT_URL, {
-			method: "POST",
-			keepalive: true,
-			body: JSON.stringify({
-				type: "saveResult",
-				examId: activeExamId,
-				name: userName,
-				appId: appId,
-				email: userEmail,
-				score: score,
-				percent: percent,
-				total: selectedQuestions.length,
-				questions: analysisData
-			}),
-			headers: { "Content-Type": "text/plain" }
-		});
-	} catch (error) {
-		console.error("Error sending result:", error);
-	}
+
+let payload = {
+	type: "saveResult",
+	id: Date.now(), // unique id
+	examId: activeExamId,
+	name: userName,
+	appId: appId,
+	email: userEmail,
+	score: score,
+	percent: percent,
+	total: selectedQuestions.length,
+	questions: analysisData
+};
+
+try {
+
+	await fetch(GOOGLE_SCRIPT_URL, {
+		method: "POST",
+		keepalive: true,
+		body: JSON.stringify(payload),
+		headers: { "Content-Type": "text/plain" }
+	});
+
+	console.log("Saved successfully");
+
+} catch (error) {
+
+	console.error("Error sending result:", error);
+
+	// ✅ SAVE OFFLINE (IMPORTANT)
+	let pending = JSON.parse(localStorage.getItem("pendingResults") || "[]");
+
+	pending.push(payload);
+
+	localStorage.setItem("pendingResults", JSON.stringify(pending));
+}
 }
 
 function handleViolation(message) {
@@ -752,6 +775,53 @@ if (prefilledExamId) {
 } else {
 	updateUiFromMeta();
 }
+async function retryPendingResults() {
+
+let pending = JSON.parse(localStorage.getItem("pendingResults") || "[]");
+
+if (pending.length === 0) return;
+
+console.log("Retrying pending results:", pending.length);
+
+let successIds = [];
+
+for (let data of pending) {
+
+	try {
+
+		await fetch(GOOGLE_SCRIPT_URL, {
+			method: "POST",
+			body: JSON.stringify(data),
+			headers: { "Content-Type": "text/plain" }
+		});
+
+		console.log("Sent:", data.id);
+		successIds.push(data.id);
+
+	} catch (err) {
+		console.log("Still failed:", data.id);
+	}
+}
+
+// keep only failed ones
+let remaining = pending.filter(p => !successIds.includes(p.id));
+
+localStorage.setItem("pendingResults", JSON.stringify(remaining));
+
+if (remaining.length === 0) {
+	console.log("All pending results synced ✅");
+}
+}
+// when internet comes back
+window.addEventListener("online", () => {
+	console.log("Internet back - retrying...");
+	retryPendingResults();
+});
+
+// when page loads
+window.onload = () => {
+	retryPendingResults();
+};
 </script>
 
 </body>
