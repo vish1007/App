@@ -1,210 +1,711 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Admin - Bulk Question Upload</title>
-
-<style>
-
-body{
-font-family:Arial;
-padding:40px;
-background:#f4f6f9;
-}
-
-.container{
-max-width:800px;
-margin:auto;
-background:white;
-padding:30px;
-border-radius:10px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-margin-bottom:20px;
-}
-
-textarea{
-width:100%;
-height:300px;
-font-size:16px;
-margin-top:10px;
-}
-
-button{
-padding:12px 20px;
-margin-top:20px;
-background:#2563eb;
-color:white;
-border:none;
-cursor:pointer;
-}
-
-button:hover{
-background:#1d4ed8;
-}
-
-.example{
-background:#f1f5f9;
-padding:15px;
-border-radius:6px;
-margin-bottom:20px;
-font-family:monospace;
-}
-
-input{
-width:100%;
-padding:10px;
-font-size:16px;
-}
-
-</style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Q-APP | Teacher Exam Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<!-- LOGIN BOX -->
+<main class="app-shell">
+	<section class="hero">
+		<div class="hero-panel">
+			<span class="eyebrow">Teacher Control Center</span>
+			<h1>Create separate exams for separate teachers.</h1>
+			<p>
+				This admin page now manages multiple isolated exams. Each exam gets its own exam ID,
+				its own time window, its own questions, and its own results.
+			</p>
+			<ul class="hero-list">
+				<li>Create a new exam and receive a dedicated exam ID for students.</li>
+				<li>Edit the selected exam without affecting any other teacher's exam.</li>
+				<li>Upload questions only into the currently selected exam.</li>
+			</ul>
+		</div>
 
-<div class="container" id="loginBox">
+		<div class="stack">
+			<div class="stat-grid">
+				<div class="stat-card">
+					<span class="stat-label">Exam Model</span>
+					<span class="stat-value">Multi-Exam</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-label">Teacher Scope</span>
+					<span class="stat-value">Separated</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-label">Question Upload</span>
+					<span class="stat-value">Per Exam</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-label">Login Mode</span>
+					<span class="stat-value">Secure Token</span>
+				</div>
+			</div>
 
-<h2>Admin Login</h2>
+			<div class="card">
+				<h3>Teacher Tips</h3>
+				<ul class="info-list">
+					<li>Create a new exam whenever you want a new teacher-specific exam ID.</li>
+					<li>Share the exam link or exam ID only with the students for that exam.</li>
+					<li>Use one blank line between questions during bulk upload for cleaner parsing.</li>
+				</ul>
+			</div>
+		</div>
+	</section>
 
-<input type="text" id="username" placeholder="Username"><br><br>
+	<section class="card" id="loginBox">
+		<span class="eyebrow">Admin Login</span>
+		<h2 style="margin-top:14px;">Access your exam workspace</h2>
+		<p class="helper-text">Sign in with your teacher/admin account to manage your own exams.</p>
 
-<input type="password" id="password" placeholder="Password"><br><br>
+		<div class="input-grid" style="margin-top:18px;">
+			<div class="field">
+				<label for="username">Username</label>
+				<input type="text" id="username" autocomplete="username" placeholder="Enter admin username">
+			</div>
 
-<button onclick="login()">Login</button>
+			<div class="field">
+				<label for="password">Password</label>
+				<input type="password" id="password" autocomplete="current-password" placeholder="Enter password">
+			</div>
+		</div>
 
-<div id="loginStatus" style="margin-top:15px;color:red;font-weight:bold"></div>
+		<div class="actions">
+			<button class="btn-primary" id="loginBtn" onclick="login()">Login</button>
+			<div class="status" id="loginHint">Sign in to create and manage your exams.</div>
+		</div>
 
-</div>
+		<p id="loginStatus" class="danger-text" style="margin:16px 0 0;"></p>
+	</section>
 
+	<section class="card hidden" id="workspaceBox">
+		<span class="eyebrow">Exam Workspace</span>
+		<h2 style="margin-top:14px;">Manage your exams</h2>
+		<p class="helper-text">Create a new exam, select an existing one, then edit timing, settings, and questions for that exam only.</p>
 
-<!-- UPLOAD BOX -->
+		<div class="card" style="margin-top:20px; padding:22px;">
+			<span class="eyebrow">Exam Selector</span>
+			<h3 style="margin-top:14px;">Choose the exam you want to manage</h3>
 
-<div class="container" id="uploadBox" style="display:none">
+			<div class="input-grid" style="margin-top:18px;">
+				<div class="field full">
+					<label for="examSelect">Your Exams</label>
+					<select id="examSelect" onchange="handleExamSelection()">
+						<option value="">Select an exam</option>
+					</select>
+				</div>
+			</div>
 
-<h2>Bulk Question Upload</h2>
+			<div class="actions">
+				<button class="btn-secondary" onclick="loadExamList()">Refresh Exam List</button>
+			</div>
 
-<p><b>Paste questions using the following format:</b></p>
+			<div id="examListStatus" class="status" style="margin-top:16px;">No exam selected yet.</div>
+		</div>
 
-<div class="example">
+		<div class="card" style="margin-top:20px; padding:22px;">
+			<span class="eyebrow">Create New Exam</span>
+			<h3 style="margin-top:14px;">Start a brand-new teacher exam</h3>
+			<p class="helper-text">Creating a new exam generates a unique exam ID. Students for that exam should only use that code or link.</p>
 
-Which planet is known as the Red Planet?<br>
-A. Earth<br>
-B. Mars<br>
-C. Jupiter<br>
-D. Venus<br>
-Answer: B<br><br>
+			<div class="input-grid" style="margin-top:18px;">
+				<div class="field full">
+					<label for="newExamTitle">Exam Title</label>
+					<input id="newExamTitle" placeholder="Example: Physics Mock Test - Teacher A">
+				</div>
 
-Capital of India?<br>
-A. Delhi<br>
-B. Mumbai<br>
-C. Chennai<br>
-D. Kolkata<br>
-Answer: A
+				<div class="field full">
+					<label for="newExamSubtitle">Exam Subtitle</label>
+					<input id="newExamSubtitle" placeholder="Answer each question carefully">
+				</div>
 
-</div>
+				<div class="field">
+					<label for="newExamStart">Exam Start Time</label>
+					<input id="newExamStart" type="datetime-local">
+				</div>
 
-<textarea id="bulkQuestions" placeholder="Paste questions here..."></textarea>
+				<div class="field">
+					<label for="newExamEnd">Exam End Time</label>
+					<input id="newExamEnd" type="datetime-local">
+				</div>
 
-<br>
+				<div class="field">
+					<label for="newMailDelay">PDF Mail Delay (Minutes)</label>
+					<input id="newMailDelay" type="number" min="0" max="1440" value="30">
+				</div>
 
-<button onclick="uploadQuestions()">Upload Questions</button>
+				<div class="field">
+					<label for="newDuration">Exam Duration (Minutes)</label>
+					<input id="newDuration" type="number" min="1" max="300" value="10">
+				</div>
 
-<div id="status" style="margin-top:15px;color:#2563eb;font-weight:bold"></div>
+				<div class="field">
+					<label for="newQuestionLimit">Questions per Attempt</label>
+					<input id="newQuestionLimit" type="number" min="1" max="300" value="10">
+				</div>
 
-</div>
+				<div class="field">
+					<label for="newPassPercentage">Pass Percentage</label>
+					<input id="newPassPercentage" type="number" min="1" max="100" value="50">
+				</div>
 
+				<div class="field">
+					<label for="newAppPrefix">Application ID Prefix</label>
+					<input id="newAppPrefix" maxlength="12" value="CDS">
+				</div>
+			</div>
+
+			<div class="actions">
+				<button class="btn-primary" id="createExamBtn" onclick="createExam()">Create Exam</button>
+			</div>
+
+			<div id="createExamStatus" class="status" style="margin-top:16px;">Create a new exam to get a fresh exam ID.</div>
+		</div>
+
+		<div class="card" style="margin-top:20px; padding:22px;">
+			<span class="eyebrow">Selected Exam</span>
+			<h3 style="margin-top:14px;">Edit the currently selected exam</h3>
+
+			<div class="input-grid" style="margin-top:18px;">
+				<div class="field">
+					<label for="selectedExamId">Exam ID</label>
+					<input id="selectedExamId" readonly>
+				</div>
+
+				<div class="field">
+					<label for="selectedExamLink">Student Link</label>
+					<input id="selectedExamLink" readonly>
+				</div>
+
+				<div class="field full">
+					<label for="examTitle">Exam Title</label>
+					<input id="examTitle" placeholder="Enter exam title">
+				</div>
+
+				<div class="field full">
+					<label for="examSubtitle">Exam Subtitle</label>
+					<input id="examSubtitle" placeholder="Enter exam subtitle">
+				</div>
+
+				<div class="field">
+					<label for="examStartAt">Exam Start Time</label>
+					<input id="examStartAt" type="datetime-local">
+				</div>
+
+				<div class="field">
+					<label for="examEndAt">Exam End Time</label>
+					<input id="examEndAt" type="datetime-local">
+				</div>
+
+				<div class="field">
+					<label for="mailDelayMinutes">PDF Mail Delay in Minutes</label>
+					<input id="mailDelayMinutes" type="number" min="0" max="1440">
+				</div>
+
+				<div class="field">
+					<label for="durationMinutes">Exam Duration (Minutes)</label>
+					<input id="durationMinutes" type="number" min="1" max="300">
+				</div>
+
+				<div class="field">
+					<label for="questionLimit">Questions per Attempt</label>
+					<input id="questionLimit" type="number" min="1" max="300">
+				</div>
+
+				<div class="field">
+					<label for="passPercentage">Pass Percentage</label>
+					<input id="passPercentage" type="number" min="1" max="100">
+				</div>
+
+				<div class="field">
+					<label for="appIdPrefix">Application ID Prefix</label>
+					<input id="appIdPrefix" maxlength="12">
+				</div>
+
+				<div class="field">
+					<label for="selectedQuestionCount">Current Question Count</label>
+					<input id="selectedQuestionCount" readonly>
+				</div>
+			</div>
+
+			<div class="actions">
+				<button class="btn-primary" id="saveExamBtn" onclick="saveExamSettings()">Save Selected Exam</button>
+				<button class="btn-secondary" onclick="copyExamLink()">Copy Exam Link</button>
+			</div>
+
+			<div id="selectedExamStatus" class="status" style="margin-top:16px;">Select an exam to load its settings.</div>
+		</div>
+
+		<div class="example-box" style="margin-top:20px;">Which planet is known as the Red Planet?
+A. Earth
+B. Mars
+C. Jupiter
+D. Venus
+Answer: B
+
+Capital of India?
+A. Delhi
+B. Mumbai
+C. Chennai
+D. Kolkata
+Answer: A</div>
+
+		<div class="field" style="margin-top:18px;">
+			<label for="bulkQuestions">Question Content for Selected Exam</label>
+			<textarea id="bulkQuestions" placeholder="Select an exam first, then paste formatted questions here..."></textarea>
+		</div>
+
+		<div class="textarea-meta">
+			<span id="questionCountHint">0 lines pasted</span>
+			<span>Upload goes only to the currently selected exam ID</span>
+		</div>
+
+		<div class="actions">
+			<button class="btn-primary" id="uploadBtn" onclick="uploadQuestions()">Upload Questions</button>
+			<button class="btn-secondary" onclick="clearQuestions()">Clear Text</button>
+		</div>
+
+		<div id="status" class="status" style="margin-top:16px;">Select an exam before uploading questions.</div>
+	</section>
+</main>
 
 <script>
+const ADMIN_SESSION_KEY = "qappAdminSession";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmhBOIiAolG49_mhHS8Fg_9p_io-mM-05m2Y-1OcFqAgLiw0Utf32GCW5mrQ1SDk-T4Q/exec";
 
-const GOOGLE_SCRIPT_URL="https://script.google.com/macros/s/AKfycbyIf55osyMQiEn581AC1iIsvWRs68b0gySO1L6A1wuIgjIniElbO14hxaP3WMISP-GvwA/exec";
-function login(){
+const bulkQuestionsEl = document.getElementById("bulkQuestions");
+const questionCountHintEl = document.getElementById("questionCountHint");
+const loginStatusEl = document.getElementById("loginStatus");
+const loginHintEl = document.getElementById("loginHint");
+const statusEl = document.getElementById("status");
+const examListStatusEl = document.getElementById("examListStatus");
+const createExamStatusEl = document.getElementById("createExamStatus");
+const selectedExamStatusEl = document.getElementById("selectedExamStatus");
 
-let username=document.getElementById("username").value.trim();
-let password=document.getElementById("password").value.trim();
+let adminSession = loadAdminSession();
+let teacherExams = [];
+let selectedExamId = "";
 
-if(username=="" || password==""){
-alert("Enter username and password");
-return;
+function setLoginError(message) {
+	loginStatusEl.textContent = message;
 }
 
-fetch(GOOGLE_SCRIPT_URL,{
-method:"POST",
-body:JSON.stringify({
-type:"login",
-username:username,
-password:password
-}),
-headers:{"Content-Type":"text/plain"}
-})
-
-.then(r=>r.text())
-.then(res=>{
-
-if(res=="success"){
-
-document.getElementById("loginBox").style.display="none";
-document.getElementById("uploadBox").style.display="block";
-
-}else{
-
-document.getElementById("loginStatus").innerText="Invalid username or password ❌";
-
+function setStatus(message, type) {
+	statusEl.className = type === "success" ? "success-box" : type === "warning" ? "warning-box" : "status";
+	statusEl.textContent = message;
 }
 
-})
-
-.catch(err=>{
-document.getElementById("loginStatus").innerText="Server error ❌";
-console.error(err)
-})
-
+function setExamListStatus(message, type) {
+	examListStatusEl.className = type === "success" ? "success-box" : type === "warning" ? "warning-box" : "status";
+	examListStatusEl.textContent = message;
 }
 
-
-
-function uploadQuestions(){
-
-let text=document.getElementById("bulkQuestions").value.trim();
-
-if(text==""){
-alert("Please paste questions first");
-return;
+function setCreateExamStatus(message, type) {
+	createExamStatusEl.className = type === "success" ? "success-box" : type === "warning" ? "warning-box" : "status";
+	createExamStatusEl.textContent = message;
 }
 
-document.getElementById("status").innerText="Uploading questions...";
-
-fetch(GOOGLE_SCRIPT_URL,{
-method:"POST",
-body:JSON.stringify({
-type:"bulkQuestions",
-data:text,
-username:document.getElementById("username").value,
-password:document.getElementById("password").value
-}),
-headers:{"Content-Type":"text/plain"}
-})
-
-.then(r=>r.text())
-.then(res=>{
-
-if(res=="unauthorized"){
-document.getElementById("status").innerText="Access denied ❌";
-return;
+function setSelectedExamStatus(message, type) {
+	selectedExamStatusEl.className = type === "success" ? "success-box" : type === "warning" ? "warning-box" : "status";
+	selectedExamStatusEl.textContent = message;
 }
 
-document.getElementById("status").innerText="Upload completed successfully ✅";
-document.getElementById("bulkQuestions").value="";
-
-})
-
-.catch(err=>{
-document.getElementById("status").innerText="Upload failed ❌";
-console.error(err)
-})
-
+function loadAdminSession() {
+	try {
+		const saved = sessionStorage.getItem(ADMIN_SESSION_KEY);
+		return saved ? JSON.parse(saved) : null;
+	} catch (error) {
+		console.error(error);
+		return null;
+	}
 }
 
+function saveAdminSession(session) {
+	adminSession = session;
+	sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+}
+
+function clearAdminSession() {
+	adminSession = null;
+	sessionStorage.removeItem(ADMIN_SESSION_KEY);
+}
+
+function showWorkspace() {
+	document.getElementById("loginBox").classList.add("hidden");
+	document.getElementById("workspaceBox").classList.remove("hidden");
+}
+
+function showLogin() {
+	document.getElementById("loginBox").classList.remove("hidden");
+	document.getElementById("workspaceBox").classList.add("hidden");
+}
+
+function tryParseJson(text) {
+	try {
+		return JSON.parse(text);
+	} catch (error) {
+		return null;
+	}
+}
+
+function toLocalDatetimeInputValue(value) {
+	if (!value) {
+		return "";
+	}
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) {
+		return "";
+	}
+	const offset = date.getTimezoneOffset();
+	return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16);
+}
+
+function toIsoFromLocalInput(value) {
+	if (!value) {
+		return "";
+	}
+	const date = new Date(value);
+	return Number.isNaN(date.getTime()) ? "" : date.toISOString();
+}
+
+async function callAdminApi(payload) {
+	if (!adminSession || !adminSession.sessionToken) {
+		throw new Error("Missing admin session");
+	}
+
+	const response = await fetch(GOOGLE_SCRIPT_URL, {
+		method: "POST",
+		body: JSON.stringify({
+			...payload,
+			adminToken: adminSession.sessionToken,
+			username: adminSession.username || ""
+		}),
+		headers: { "Content-Type": "text/plain" }
+	});
+
+	const raw = await response.text();
+	const parsed = tryParseJson(raw);
+
+	if (parsed && parsed.status === "unauthorized") {
+		clearAdminSession();
+		showLogin();
+		throw new Error("Unauthorized");
+	}
+
+	return parsed;
+}
+
+function renderExamOptions() {
+	const select = document.getElementById("examSelect");
+	select.innerHTML = '<option value="">Select an exam</option>';
+
+	teacherExams.forEach((exam) => {
+		const option = document.createElement("option");
+		option.value = exam.examId;
+		option.textContent = `${exam.examId} | ${exam.examTitle}`;
+		select.appendChild(option);
+	});
+
+	if (selectedExamId) {
+		select.value = selectedExamId;
+	}
+}
+
+async function loadExamList() {
+	try {
+		setExamListStatus("Loading your exams...", "default");
+		const result = await callAdminApi({ type: "getAdminExams" });
+
+		if (!result || result.status !== "success") {
+			setExamListStatus("Could not load your exam list.", "warning");
+			return;
+		}
+
+		teacherExams = result.exams || [];
+		renderExamOptions();
+		setExamListStatus(`Loaded ${teacherExams.length} exam(s) for your account.`, "success");
+	} catch (error) {
+		console.error(error);
+		setExamListStatus("Could not load your exam list.", "warning");
+	}
+}
+
+function buildSettingsFrom(prefix) {
+	return {
+		examTitle: document.getElementById(`${prefix}ExamTitle`).value.trim(),
+		examSubtitle: document.getElementById(`${prefix}ExamSubtitle`).value.trim() || "Answer each question carefully",
+		examStart: toIsoFromLocalInput(document.getElementById(`${prefix}ExamStart`).value),
+		examEnd: toIsoFromLocalInput(document.getElementById(`${prefix}ExamEnd`).value),
+		mailDelayMinutes: Math.max(0, Number(document.getElementById(`${prefix}MailDelay`).value) || 0),
+		durationMinutes: Math.max(1, Number(document.getElementById(`${prefix}Duration`).value) || 1),
+		questionLimit: Math.max(1, Number(document.getElementById(`${prefix}QuestionLimit`).value) || 1),
+		passPercentage: Math.min(100, Math.max(1, Number(document.getElementById(`${prefix}PassPercentage`).value) || 1)),
+		appIdPrefix: (document.getElementById(`${prefix}AppPrefix`).value.trim() || "CDS").toUpperCase()
+	};
+}
+
+function fillSelectedExam(exam, examLink, questionCount) {
+	selectedExamId = exam.examId;
+	document.getElementById("selectedExamId").value = exam.examId;
+	document.getElementById("selectedExamLink").value = examLink || "";
+	document.getElementById("examTitle").value = exam.examTitle || "";
+	document.getElementById("examSubtitle").value = exam.examSubtitle || "";
+	document.getElementById("examStartAt").value = toLocalDatetimeInputValue(exam.examStart);
+	document.getElementById("examEndAt").value = toLocalDatetimeInputValue(exam.examEnd);
+	document.getElementById("mailDelayMinutes").value = exam.mailDelayMinutes;
+	document.getElementById("durationMinutes").value = exam.durationMinutes;
+	document.getElementById("questionLimit").value = exam.questionLimit;
+	document.getElementById("passPercentage").value = exam.passPercentage;
+	document.getElementById("appIdPrefix").value = exam.appIdPrefix;
+	document.getElementById("selectedQuestionCount").value = String(questionCount ?? "");
+	setSelectedExamStatus(`Loaded exam ${exam.examId}. Share this link or ID with students for this exam only.`, "success");
+	renderExamOptions();
+}
+
+async function handleExamSelection() {
+	const examId = document.getElementById("examSelect").value;
+	if (!examId) {
+		selectedExamId = "";
+		setSelectedExamStatus("Select an exam to load its settings.", "default");
+		return;
+	}
+
+	try {
+		setSelectedExamStatus("Loading selected exam...", "default");
+		const result = await callAdminApi({ type: "getExamDetails", examId: examId });
+
+		if (!result || result.status !== "success") {
+			setSelectedExamStatus("Could not load this exam.", "warning");
+			return;
+		}
+
+		fillSelectedExam(result.exam, result.examLink, result.questionCount);
+	} catch (error) {
+		console.error(error);
+		setSelectedExamStatus("Could not load this exam.", "warning");
+	}
+}
+
+async function createExam() {
+	const createExamBtn = document.getElementById("createExamBtn");
+	const settings = buildSettingsFrom("new");
+
+	if (!settings.examTitle || !settings.examStart || !settings.examEnd) {
+		setCreateExamStatus("Please fill exam title, start time, and end time.", "warning");
+		return;
+	}
+
+	createExamBtn.disabled = true;
+	createExamBtn.textContent = "Creating...";
+	setCreateExamStatus("Creating a new exam...", "default");
+
+	try {
+		const result = await callAdminApi({
+			type: "createExam",
+			settings: settings
+		});
+
+		if (!result || result.status !== "success") {
+			setCreateExamStatus(result && result.message ? result.message : "Exam could not be created.", "warning");
+			return;
+		}
+
+		setCreateExamStatus(`New exam created successfully: ${result.examId}`, "success");
+		await loadExamList();
+		selectedExamId = result.examId;
+		document.getElementById("examSelect").value = result.examId;
+		await handleExamSelection();
+	} catch (error) {
+		console.error(error);
+		setCreateExamStatus("Exam creation failed. Please try again.", "warning");
+	} finally {
+		createExamBtn.disabled = false;
+		createExamBtn.textContent = "Create Exam";
+	}
+}
+
+async function saveExamSettings() {
+	if (!selectedExamId) {
+		setSelectedExamStatus("Select an exam first.", "warning");
+		return;
+	}
+
+	const saveExamBtn = document.getElementById("saveExamBtn");
+	const settings = {
+		examTitle: document.getElementById("examTitle").value.trim(),
+		examSubtitle: document.getElementById("examSubtitle").value.trim(),
+		examStart: toIsoFromLocalInput(document.getElementById("examStartAt").value),
+		examEnd: toIsoFromLocalInput(document.getElementById("examEndAt").value),
+		mailDelayMinutes: Math.max(0, Number(document.getElementById("mailDelayMinutes").value) || 0),
+		durationMinutes: Math.max(1, Number(document.getElementById("durationMinutes").value) || 1),
+		questionLimit: Math.max(1, Number(document.getElementById("questionLimit").value) || 1),
+		passPercentage: Math.min(100, Math.max(1, Number(document.getElementById("passPercentage").value) || 1)),
+		appIdPrefix: (document.getElementById("appIdPrefix").value.trim() || "CDS").toUpperCase()
+	};
+
+	saveExamBtn.disabled = true;
+	saveExamBtn.textContent = "Saving...";
+	setSelectedExamStatus("Saving selected exam...", "default");
+
+	try {
+		const result = await callAdminApi({
+			type: "saveExamSettings",
+			examId: selectedExamId,
+			settings: settings
+		});
+
+		if (!result || result.status !== "success") {
+			setSelectedExamStatus(result && result.message ? result.message : "Exam settings could not be saved.", "warning");
+			return;
+		}
+
+		setSelectedExamStatus(`Exam ${selectedExamId} saved successfully.`, "success");
+		await loadExamList();
+		await handleExamSelection();
+	} catch (error) {
+		console.error(error);
+		setSelectedExamStatus("Exam settings could not be saved.", "warning");
+	} finally {
+		saveExamBtn.disabled = false;
+		saveExamBtn.textContent = "Save Selected Exam";
+	}
+}
+
+async function uploadQuestions() {
+	const text = bulkQuestionsEl.value.trim();
+	const uploadBtn = document.getElementById("uploadBtn");
+
+	if (!selectedExamId) {
+		setStatus("Select an exam before uploading questions.", "warning");
+		return;
+	}
+
+	if (!text) {
+		setStatus("Please paste questions before uploading.", "warning");
+		return;
+	}
+
+	uploadBtn.disabled = true;
+	uploadBtn.textContent = "Uploading...";
+	setStatus(`Uploading questions into ${selectedExamId}...`, "default");
+
+	try {
+		const result = await callAdminApi({
+			type: "bulkQuestions",
+			examId: selectedExamId,
+			data: text
+		});
+
+		if (!result || result.status !== "uploaded") {
+			setStatus("Question upload failed.", "warning");
+			return;
+		}
+
+		setStatus(`Uploaded ${result.count} question(s) into ${selectedExamId}.`, "success");
+		bulkQuestionsEl.value = "";
+		updateLineCount();
+		await handleExamSelection();
+		await loadExamList();
+	} catch (error) {
+		console.error(error);
+		setStatus("Question upload failed.", "warning");
+	} finally {
+		uploadBtn.disabled = false;
+		uploadBtn.textContent = "Upload Questions";
+	}
+}
+
+function copyExamLink() {
+	const link = document.getElementById("selectedExamLink").value.trim();
+	if (!link) {
+		setSelectedExamStatus("No exam link is available yet.", "warning");
+		return;
+	}
+
+	navigator.clipboard.writeText(link)
+		.then(() => setSelectedExamStatus("Exam link copied. Share it only with students for this exam.", "success"))
+		.catch(() => setSelectedExamStatus("Could not copy the link automatically. Copy it from the field.", "warning"));
+}
+
+function clearQuestions() {
+	bulkQuestionsEl.value = "";
+	updateLineCount();
+	setStatus("Question editor cleared.", "default");
+}
+
+function updateLineCount() {
+	const value = bulkQuestionsEl.value.trim();
+	const count = value ? value.split(/\r?\n/).length : 0;
+	questionCountHintEl.textContent = `${count} lines pasted`;
+}
+
+async function login() {
+	const username = document.getElementById("username").value.trim();
+	const password = document.getElementById("password").value.trim();
+	const loginBtn = document.getElementById("loginBtn");
+
+	setLoginError("");
+
+	if (!username || !password) {
+		setLoginError("Enter username and password.");
+		return;
+	}
+
+	loginBtn.disabled = true;
+	loginBtn.textContent = "Signing In...";
+	loginHintEl.textContent = "Checking your admin access...";
+
+	try {
+		const response = await fetch(GOOGLE_SCRIPT_URL, {
+			method: "POST",
+			body: JSON.stringify({
+				type: "login",
+				username: username,
+				password: password
+			}),
+			headers: { "Content-Type": "text/plain" }
+		});
+
+		const rawResult = await response.text();
+		const jsonResult = tryParseJson(rawResult);
+
+		if (jsonResult && jsonResult.status === "success" && jsonResult.sessionToken) {
+			saveAdminSession({
+				username: username,
+				sessionToken: jsonResult.sessionToken,
+				expiresAt: jsonResult.expiresAt || ""
+			});
+			showWorkspace();
+			setStatus("Login successful. Your separate exam workspace is ready.", "success");
+			setExamListStatus("Loading your exams...", "default");
+			await loadExamList();
+			return;
+		}
+
+		setLoginError("Invalid username or password.");
+		loginHintEl.textContent = "Please check your credentials and try again.";
+	} catch (error) {
+		console.error(error);
+		setLoginError("Server error. Please try again.");
+		loginHintEl.textContent = "The login request could not be completed.";
+	} finally {
+		loginBtn.disabled = false;
+		loginBtn.textContent = "Login";
+	}
+}
+
+bulkQuestionsEl.addEventListener("input", updateLineCount);
+updateLineCount();
+
+if (adminSession && adminSession.sessionToken) {
+	showWorkspace();
+	setStatus("Secure admin session restored.", "success");
+	loadExamList();
+}
 </script>
 
 </body>

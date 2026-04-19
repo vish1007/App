@@ -1,657 +1,757 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Secure Online Quiz</title>
-
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{
-font-family:'Segoe UI',sans-serif;
-background:#eef2f7;
-padding:20px;
-}
-.optionBox{
-display:block;
-padding:12px;
-margin:8px 0;
-border:1px solid #ccc;
-border-radius:8px;
-font-size:16px;
-cursor:pointer;
-}
-
-.optionBox input{
-margin-right:10px;
-}
-
-.optionBox:hover{
-background:#f0f6ff;
-}
-
-@media (max-width:600px){
-
-.card{
-padding:20px;
-}
-
-h3{
-font-size:18px;
-}
-
-button{
-width:100%;
-font-size:18px;
-}
-
-}
-.card{
-background:white;
-padding:30px;
-border-radius:10px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-max-width:700px;
-margin:auto;
-}
-
-button{
-background:#2563eb;
-border:none;
-color:white;
-padding:12px 20px;
-border-radius:5px;
-font-size:16px;
-margin-top:20px;
-cursor:pointer;
-}
-
-button:hover{background:#1d4ed8}
-
-.hidden{display:none}
-
-#timer{
-color:#ef4444;
-font-weight:bold;
-font-size:22px;
-margin-bottom:20px;
-}
-
-.warning{color:red;font-weight:bold}
-
-input{padding:8px;width:250px}
-
-</style>
+<title>Q-APP | Join Exam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<div class="card" id="login">
+<main class="app-shell">
+	<section class="hero" id="landingHero">
+		<div class="hero-panel">
+			<span class="eyebrow">Q-APP Multi-Exam Portal</span>
+			<h1 id="heroTitle">Join the exact exam shared by your teacher.</h1>
+			<p id="heroSubtitle">
+				Each exam now has its own exam ID. Students only see that particular teacher's exam, while questions and results stay separate from every other exam.
+			</p>
+			<ul class="hero-list">
+				<li>Enter the exam ID provided by your teacher or use the direct exam link.</li>
+				<li>Questions, timing, attempt checks, and results all stay attached to that exam only.</li>
+				<li>One student can take multiple different teacher exams without records getting mixed together.</li>
+			</ul>
+		</div>
 
-<h2>Student Login</h2>
+		<div class="stack">
+			<div class="stat-grid">
+				<div class="stat-card">
+					<span class="stat-label">Exam ID</span>
+					<span class="stat-value" id="heroExamIdStat">Required</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-label">Duration</span>
+					<span class="stat-value" id="heroDurationStat">--</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-label">Questions</span>
+					<span class="stat-value" id="heroQuestionStat">--</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-label">Pass Mark</span>
+					<span class="stat-value" id="heroPassStat">--</span>
+				</div>
+			</div>
 
-<label>Name</label><br>
-<input id="name"><br><br>
+			<div class="card">
+				<h3>Before You Start</h3>
+				<ul class="info-list">
+					<li>Use the exact exam ID given by your teacher or admin.</li>
+					<li>The application ID check works inside that exam only, not across all exams.</li>
+					<li>Wait for the exam to be inside its start and end time window before beginning.</li>
+				</ul>
+			</div>
+		</div>
+	</section>
 
-<label>Application ID</label><br>
-<input id="appId" placeholder="Eg: CDS/2025/9999"><br><br>
-<label>Email</label><br>
-<input id="email" type="email" placeholder="Enter your email"><br><br>
-<button id="startBtn" onclick="startTest()">Start Test</button>
-<div id="countdownBox" style="text-align:center;margin-top:20px;display:none">
-<h1 id="countNumber" style="font-size:80px;color:#2563eb;margin:0"></h1>
-<p style="font-size:18px">Test starting...</p>
-</div>
-<p id="loginWarning" class="warning"></p>
+	<section class="card" id="login">
+		<span class="eyebrow">Student Portal</span>
+		<h2 style="margin-top:14px;" id="loginHeading">Join your exam</h2>
+		<p class="helper-text" id="loginSummary">
+			Enter your exam ID and student details carefully. The app will load only that exam and save your result under the same exam ID.
+		</p>
 
-</div>
+		<div class="input-grid">
+			<div class="field full">
+				<label for="examId">Exam ID</label>
+				<input id="examId" placeholder="Example: EXAM-AB12CD34">
+				<p class="helper-text" id="examIdHelp">Ask your teacher for the exam ID or open the exam link they shared.</p>
+			</div>
 
+			<div class="field">
+				<label for="name">Full Name</label>
+				<input id="name" autocomplete="name" placeholder="Enter your full name">
+			</div>
 
-<div class="card hidden" id="quiz">
+			<div class="field">
+				<label for="email">Email Address</label>
+				<input id="email" type="email" autocomplete="email" placeholder="name@example.com">
+			</div>
 
-<h2>Online Test</h2>
+			<div class="field full">
+				<label for="appId">Application ID</label>
+				<input id="appId" placeholder="Example: CDS/2025/9999">
+				<p class="helper-text" id="appIdHelp">The application ID format depends on the teacher's exam setup.</p>
+			</div>
+		</div>
 
-<div id="timer"></div>
+		<div class="actions">
+			<button class="btn-primary" id="startBtn" onclick="startTest()">Start Test</button>
+			<div class="status" id="loginStatus">Enter an exam ID to preview the exam details.</div>
+		</div>
 
-<p class="warning" id="warning"></p>
+		<div class="countdown-box" id="countdownBox">
+			<p class="helper-text" style="margin:0;color:inherit;">Test starting in</p>
+			<p class="countdown-number" id="countNumber">15</p>
+			<p class="helper-text" style="margin:0;color:inherit;">Please stay on this screen while the exam is prepared.</p>
+		</div>
 
-<div id="question-container"></div>
+		<p id="loginWarning" class="danger-text" style="margin:16px 0 0;"></p>
+	</section>
 
-<button id="nextBtn" style="display:none" onclick="nextQuestion()">Next</button>
+	<section class="card hidden" id="quiz">
+		<div class="quiz-header">
+			<div class="quiz-header-main">
+				<span class="eyebrow">Live Assessment</span>
+				<h2 id="quizHeading">Answer each question carefully</h2>
+				<div class="pill-row">
+					<span class="pill" id="studentBadge">Student session</span>
+					<span class="pill" id="examBadge">Exam: --</span>
+					<span class="pill" id="questionCountBadge">0 questions loaded</span>
+					<span class="pill" id="passBadge">Pass mark: --</span>
+				</div>
+			</div>
+			<div class="pill timer" id="timer">Time Left: 00m 00s</div>
+		</div>
 
-</div>
+		<div class="progress-wrap">
+			<div class="progress-meta">
+				<span id="progressText">Question 1 of 1</span>
+				<span id="progressPercent">0% complete</span>
+			</div>
+			<div class="progress-bar" aria-hidden="true">
+				<div class="progress-fill" id="progressFill"></div>
+			</div>
+		</div>
 
+		<p class="warning-box hidden" id="warning"></p>
 
-<div class="card hidden" id="result">
+		<div class="question-card">
+			<div id="question-container"></div>
+		</div>
 
-<h2>Result</h2>
+		<div class="actions">
+			<button class="btn-primary hidden" id="nextBtn" onclick="nextQuestion()">Next Question</button>
+			<div class="status" id="answerStatus">Select one option to continue.</div>
+		</div>
+	</section>
 
-<p id="scoreMsg"></p>
+	<section class="card hidden" id="result">
+		<span class="eyebrow">Assessment Complete</span>
+		<h2 style="margin-top:14px;">Your exam has been submitted</h2>
+		<p class="helper-text" id="resultIntro">
+			The result is saved only under this exam ID and will not be mixed with any other teacher's exam.
+		</p>
 
-<p id="percentMsg"></p>
+		<div class="result-hero">
+			<div class="score-ring">
+				<div style="text-align:center;">
+					<strong id="scoreMsg">0/0</strong>
+					<span id="percentMsg">0% scored</span>
+				</div>
+			</div>
 
-<div id="analysis"></div>
-
-</div>
-
+			<div class="analysis-box">
+				<h3>Result Summary</h3>
+				<ul class="result-list">
+					<li id="resultLineOne">Your score has been calculated successfully.</li>
+					<li id="resultLineTwo">Your submission was recorded for the selected exam.</li>
+					<li id="resultLineThree">The response sheet will be emailed after the configured delay.</li>
+				</ul>
+				<p class="page-note" id="resultStatusNote">Result status will appear here after evaluation.</p>
+			</div>
+		</div>
+	</section>
+</main>
 
 <script>
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmhBOIiAolG49_mhHS8Fg_9p_io-mM-05m2Y-1OcFqAgLiw0Utf32GCW5mrQ1SDk-T4Q/exec";
+const DEFAULT_SETTINGS = {
+	examTitle: "Q-APP Exam",
+	examSubtitle: "Answer each question carefully",
+	durationMinutes: 10,
+	questionLimit: 10,
+	passPercentage: 50,
+	appIdPrefix: "CDS"
+};
 
-// GOOGLE SHEET SCRIPT URL
+let activeExamId = "";
+let examMeta = null;
+let questions = [];
+let selectedQuestions = [];
+let userAnswers = {};
+let currentIndex = 0;
+let timer;
+let time = DEFAULT_SETTINGS.durationMinutes * 60;
+let userName = "";
+let appId = "";
+let userEmail = "";
+let examStarted = false;
+let submitted = false;
+let questionsReady = false;
+let startCountdownInterval;
+let startGateBlocked = false;
+let violationCount = 0;
 
-const GOOGLE_SCRIPT_URL="https://script.google.com/macros/s/AKfycbyIf55osyMQiEn581AC1iIsvWRs68b0gySO1L6A1wuIgjIniElbO14hxaP3WMISP-GvwA/exec";
+const queryParams = new URLSearchParams(window.location.search);
+const loginWarningEl = document.getElementById("loginWarning");
+const loginStatusEl = document.getElementById("loginStatus");
+const countdownBoxEl = document.getElementById("countdownBox");
+const countNumberEl = document.getElementById("countNumber");
+const warningEl = document.getElementById("warning");
+const answerStatusEl = document.getElementById("answerStatus");
+const nextBtnEl = document.getElementById("nextBtn");
+const questionContainerEl = document.getElementById("question-container");
+const progressFillEl = document.getElementById("progressFill");
+const progressTextEl = document.getElementById("progressText");
+const progressPercentEl = document.getElementById("progressPercent");
+const studentBadgeEl = document.getElementById("studentBadge");
+const examBadgeEl = document.getElementById("examBadge");
+const questionCountBadgeEl = document.getElementById("questionCountBadge");
+const passBadgeEl = document.getElementById("passBadge");
+const heroTitleEl = document.getElementById("heroTitle");
+const heroSubtitleEl = document.getElementById("heroSubtitle");
+const heroExamIdStatEl = document.getElementById("heroExamIdStat");
+const heroDurationStatEl = document.getElementById("heroDurationStat");
+const heroQuestionStatEl = document.getElementById("heroQuestionStat");
+const heroPassStatEl = document.getElementById("heroPassStat");
+const loginHeadingEl = document.getElementById("loginHeading");
+const loginSummaryEl = document.getElementById("loginSummary");
+const appIdHelpEl = document.getElementById("appIdHelp");
+const quizHeadingEl = document.getElementById("quizHeading");
+const resultStatusNoteEl = document.getElementById("resultStatusNote");
 
-
-let questions = []
-let selectedQuestions=[]
-
-let userAnswers={}
-
-let currentIndex=0
-
-let timer
-
-let time=10*60
-
-let userName
-let appId
-let userEmail
-
-let examStarted=false
-
-let submitted=false
-let questionsReady=false
-if(localStorage.getItem("examStarted")=="true"){
-
-alert("Page refresh detected. Exam already started.")
-
-document.body.innerHTML="<h2 style='text-align:center;color:red'>Exam session closed due to refresh.</h2>"
-
-throw new Error("Exam locked")
-
-}
-function shuffleArray(array){
-
-for(let i=array.length-1;i>0;i--){
-
-let j = Math.floor(Math.random()*(i+1))
-
-let temp = array[i]
-
-array[i] = array[j]
-
-array[j] = temp
-
-}
-
-}
-async function loadQuestions(){
-
-let cached = sessionStorage.getItem("quizQuestions")
-
-if(cached){
-
-let res = await fetch(GOOGLE_SCRIPT_URL + "?t=" + Date.now())
-let text = await res.text()
-
-// If exam closed or not started → clear cache
-if(text == "Exam is closed" || text == "Exam has not started yet"){
-
-sessionStorage.removeItem("quizQuestions")
-
-alert(text)
-
-document.body.innerHTML =
-"<h2 style='text-align:center;margin-top:120px;color:red'>" + text + "</h2>"
-
-throw new Error(text)
-
+if (sessionStorage.getItem("examStarted") === "true") {
+	alert("Page refresh detected. Exam already started.");
+	document.body.innerHTML = "<main class='app-shell'><section class='card'><h2 style='color:#b91c1c;'>Exam session closed due to refresh.</h2><p class='helper-text'>To protect the attempt, the current session has been locked. Please contact the exam administrator if this happened by mistake.</p></section></main>";
+	throw new Error("Exam locked");
 }
 
-questions = JSON.parse(cached)
-return
+function getSettings() {
+	return examMeta || { ...DEFAULT_SETTINGS, examId: activeExamId || "Not selected" };
 }
 
-let res = await fetch(GOOGLE_SCRIPT_URL + "?t=" + Date.now())
-
-let text = await res.text()
-
-// EXAM TIME CHECK
-if(text == "Exam has not started yet"){
-
-alert("Exam has not started yet")
-
-document.body.innerHTML =
-"<h2 style='text-align:center;margin-top:120px;color:red'>Exam has not started yet</h2>"
-
-throw new Error("Exam locked")
-
+function updateUiFromMeta() {
+	const settings = getSettings();
+	document.title = `${settings.examTitle} | Join Exam`;
+	heroTitleEl.textContent = settings.examTitle || "Join the exact exam shared by your teacher.";
+	heroSubtitleEl.textContent = settings.examSubtitle || "Each teacher exam is separate and protected by its own exam ID.";
+	loginHeadingEl.textContent = settings.examTitle ? `Join ${settings.examTitle}` : "Join your exam";
+	loginSummaryEl.textContent = settings.examId
+		? `You are joining exam ${settings.examId}. Your result will stay attached only to this exam.`
+		: "Enter your exam ID and student details carefully. The app will load only that exam and save your result under the same exam ID.";
+	appIdHelpEl.innerHTML = `Format required: <strong>${settings.appIdPrefix}/2025/9999</strong>. The prefix must stay in capital letters.`;
+	document.getElementById("appId").placeholder = `Example: ${settings.appIdPrefix}/2025/9999`;
+	quizHeadingEl.textContent = settings.examSubtitle || DEFAULT_SETTINGS.examSubtitle;
+	heroExamIdStatEl.textContent = settings.examId || "Required";
+	heroDurationStatEl.textContent = `${settings.durationMinutes} min`;
+	heroQuestionStatEl.textContent = String(settings.questionLimit);
+	heroPassStatEl.textContent = `${settings.passPercentage}%`;
+	examBadgeEl.textContent = `Exam: ${settings.examId || "--"}`;
+	passBadgeEl.textContent = `Pass mark: ${settings.passPercentage}%`;
+	updateTimerDisplay(settings.durationMinutes * 60);
 }
 
-if(text == "Exam is closed"){
+async function fetchExamMeta(examId) {
+	const safeExamId = String(examId || "").trim();
+	if (!safeExamId) {
+		examMeta = null;
+		activeExamId = "";
+		updateUiFromMeta();
+		return;
+	}
 
-alert("Exam is closed")
+	try {
+		setLoginStatus("Checking exam details...");
+		const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=publicExamMeta&examId=${encodeURIComponent(safeExamId)}&t=${Date.now()}`);
+		const data = await response.json();
 
-document.body.innerHTML =
-"<h2 style='text-align:center;margin-top:120px;color:red'>Exam is closed</h2>"
+		if (data.status === "not_found") {
+			examMeta = null;
+			activeExamId = safeExamId;
+			updateUiFromMeta();
+			setLoginError("Exam ID not found. Please check the code shared by your teacher.");
+			setLoginStatus("No matching exam was found.");
+			return;
+		}
 
-throw new Error("Exam closed")
+		examMeta = data.exam;
+		activeExamId = data.exam.examId;
+		updateUiFromMeta();
 
+		if (data.status === "before") {
+			setLoginStatus("This exam exists, but it has not started yet.");
+		} else if (data.status === "after") {
+			setLoginStatus("This exam exists, but its exam window has closed.");
+		} else if (data.status === "inactive") {
+			setLoginStatus("This exam is currently inactive.");
+		} else {
+			setLoginStatus("Exam found. You can begin when you are ready.");
+		}
+	} catch (error) {
+		console.error(error);
+		setLoginStatus("Could not load exam details right now.");
+	}
 }
 
-// If exam active → convert to JSON
-questions = JSON.parse(text)
-
-sessionStorage.setItem("quizQuestions",JSON.stringify(questions))
-
-console.log("Questions loaded:", questions)
-
+function shuffleArray(array) {
+	for (let i = array.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		const temp = array[i];
+		array[i] = array[j];
+		array[j] = temp;
+	}
 }
 
-async function checkApplicationId(appId){
-
-let res = await fetch(`${GOOGLE_SCRIPT_URL}?appId=${appId}`)
-
-let result = await res.text()
-
-return result
-
-}
-function validateApplicationId(id){
-
-// length check
-if(id.length !== 13){
-return "Application ID must be 13 characters (Eg: CDS/2025/9999)";
+function setLoginError(message) {
+	loginWarningEl.textContent = message;
 }
 
-// format check using regex
-let pattern = /^CDS\/\d{4}\/\d{4}$/;
-
-if(!pattern.test(id)){
-return "Application ID must be like CDS/2025/9999 (CDS must be capital)";
+function setLoginStatus(message) {
+	loginStatusEl.textContent = message;
 }
 
-return "valid";
+function validateApplicationId(id) {
+	const settings = getSettings();
+	const expectedLength = `${settings.appIdPrefix}/2025/9999`.length;
 
-}
-function startCountdown(){
+	if (id.length !== expectedLength) {
+		return `Application ID must be ${expectedLength} characters, for example ${settings.appIdPrefix}/2025/9999.`;
+	}
 
-let count = 15
+	const escapedPrefix = settings.appIdPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const pattern = new RegExp(`^${escapedPrefix}\\/\\d{4}\\/\\d{4}$`);
 
-document.getElementById("countdownBox").style.display = "block"
-document.getElementById("countNumber").innerText = count
+	if (!pattern.test(id)) {
+		return `Application ID must match the format ${settings.appIdPrefix}/2025/9999 and ${settings.appIdPrefix} must stay in capital letters.`;
+	}
 
-let interval = setInterval(()=>{
-
-count--
-
-document.getElementById("countNumber").innerText = count
-
-if(count === 0){
-
-clearInterval(interval)
-
-// enterFullscreen()
-
-document.getElementById("login").classList.add("hidden")
-document.getElementById("quiz").classList.remove("hidden")
-
-let wait = setInterval(()=>{
-
-if(questionsReady){
-
-clearInterval(wait)
-
-document.getElementById("login").classList.add("hidden")
-document.getElementById("quiz").classList.remove("hidden")
-
-showQuestion()
-startTimer()
-
+	return "valid";
 }
 
-},100)
-
+function blockStart(message) {
+	startGateBlocked = true;
+	clearInterval(startCountdownInterval);
+	countdownBoxEl.style.display = "none";
+	document.getElementById("startBtn").disabled = false;
+	document.getElementById("startBtn").textContent = "Start Test";
+	setLoginStatus(message);
 }
 
-},1000)
+function startCountdown() {
+	let count = 15;
+	countdownBoxEl.style.display = "block";
+	countNumberEl.textContent = String(count);
 
-}
-async function startTest(){
+	startCountdownInterval = setInterval(() => {
+		if (startGateBlocked) {
+			clearInterval(startCountdownInterval);
+			return;
+		}
 
-enterFullscreen()
-currentIndex = 0;
-userAnswers = {};
-time = 10*60;
+		count -= 1;
+		countNumberEl.textContent = String(count);
 
-userName=document.getElementById("name").value
-appId=document.getElementById("appId").value.trim()
-userEmail = document.getElementById("email").value.trim()
+		if (count === 0) {
+			clearInterval(startCountdownInterval);
+			const wait = setInterval(() => {
+				if (startGateBlocked) {
+					clearInterval(wait);
+					return;
+				}
 
-// Validate Application ID
-let validation = validateApplicationId(appId)
-
-if(validation !== "valid"){
-document.getElementById("loginWarning").innerText = validation
-return
-}
-
-if(!userName || !appId){
-document.getElementById("loginWarning").innerText="Enter details"
-return
-}
-
-if(!userEmail.includes("@")){
-document.getElementById("loginWarning").innerText="Enter valid email"
-return
-}
-
-// disable button after validation success
-document.getElementById("startBtn").disabled = true
-document.getElementById("startBtn").innerText = "Starting..."
-
-// start countdown immediately
-startCountdown()
-
-// load questions in background
-loadExamData()
-
+				if (questionsReady) {
+					clearInterval(wait);
+					document.getElementById("landingHero").classList.add("hidden");
+					document.getElementById("login").classList.add("hidden");
+					document.getElementById("quiz").classList.remove("hidden");
+					showQuestion();
+					startTimer();
+				}
+			}, 100);
+		}
+	}, 1000);
 }
 
-async function loadExamData(){
+async function startTest() {
+	enterFullscreen();
+	currentIndex = 0;
+	userAnswers = {};
+	time = getSettings().durationMinutes * 60;
+	submitted = false;
+	questionsReady = false;
+	startGateBlocked = false;
+	violationCount = 0;
+	warningEl.classList.add("hidden");
+	warningEl.textContent = "";
+	setLoginError("");
 
-let status = await checkApplicationId(appId)
+	activeExamId = document.getElementById("examId").value.trim().toUpperCase();
+	userName = document.getElementById("name").value.trim();
+	appId = document.getElementById("appId").value.trim();
+	userEmail = document.getElementById("email").value.trim();
 
-if(status=="exists"){
-alert("You have already attempted this exam")
-return
+	if (!activeExamId) {
+		setLoginError("Please enter the exam ID shared by your teacher.");
+		return;
+	}
+
+	if (!examMeta || examMeta.examId !== activeExamId) {
+		await fetchExamMeta(activeExamId);
+	}
+
+	if (!examMeta || examMeta.examId !== activeExamId) {
+		return;
+	}
+
+	const validation = validateApplicationId(appId);
+	if (validation !== "valid") {
+		setLoginError(validation);
+		return;
+	}
+
+	if (!userName || !appId) {
+		setLoginError("Please enter your name and application ID.");
+		return;
+	}
+
+	if (!userEmail.includes("@")) {
+		setLoginError("Please enter a valid email address.");
+		return;
+	}
+
+	const startBtn = document.getElementById("startBtn");
+	startBtn.disabled = true;
+	startBtn.textContent = "Preparing Test...";
+	setLoginStatus(`Checking eligibility for ${activeExamId}...`);
+
+	startCountdown();
+	loadExamData();
 }
 
-await loadQuestions()
+async function loadExamData() {
+	try {
+		const attemptResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=attemptStatus&examId=${encodeURIComponent(activeExamId)}&appId=${encodeURIComponent(appId)}&t=${Date.now()}`);
+		const attemptStatus = await attemptResponse.text();
 
-if(questions.length==0){
-alert("No questions available")
-return
+		if (attemptStatus === "exists") {
+			alert("You have already attempted this exam.");
+			blockStart("This application ID has already been used for this exam.");
+			return;
+		}
+
+		const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=studentExam&examId=${encodeURIComponent(activeExamId)}&t=${Date.now()}`);
+		const data = await response.json();
+
+		if (data.status !== "open") {
+			const map = {
+				not_found: "Exam ID not found.",
+				before: "This exam has not started yet.",
+				after: "This exam is closed.",
+				inactive: "This exam is inactive."
+			};
+			alert(map[data.status] || "This exam is not available.");
+			blockStart(map[data.status] || "This exam is not available.");
+			return;
+		}
+
+		examMeta = data.exam;
+		questions = Array.isArray(data.questions) ? data.questions : [];
+		updateUiFromMeta();
+
+		if (!questions.length) {
+			alert("No questions are available for this exam.");
+			blockStart("No questions are available for this exam right now.");
+			return;
+		}
+
+		selectedQuestions = [...questions];
+		shuffleArray(selectedQuestions);
+		selectedQuestions = selectedQuestions.slice(0, examMeta.questionLimit);
+		questionsReady = true;
+		examStarted = true;
+		sessionStorage.setItem("examStarted", "true");
+		sessionStorage.setItem("activeExamId", activeExamId);
+		questionCountBadgeEl.textContent = `${selectedQuestions.length} questions loaded`;
+		studentBadgeEl.textContent = userName ? `Candidate: ${userName}` : "Student session";
+		setLoginStatus(`Questions are ready for ${activeExamId}.`);
+	} catch (error) {
+		console.error(error);
+		blockStart("We could not prepare this exam. Please try again later.");
+	}
 }
 
-selectedQuestions=[...questions]
-
-shuffleArray(selectedQuestions)
-
-selectedQuestions=selectedQuestions.slice(0,10)
-
-questionsReady = true
-
-examStarted=true
-localStorage.setItem("examStarted","true")
-
-}
-function enterFullscreen(){
-document.documentElement.requestFullscreen().catch(()=>{})
+function enterFullscreen() {
+	if (!document.fullscreenElement) {
+		document.documentElement.requestFullscreen().catch(() => {});
+	}
 }
 
+function startTimer() {
+	const endTime = Date.now() + (time * 1000);
 
-function startTimer(){
-
-let endTime = Date.now() + (time * 1000)
-
-timer = setInterval(()=>{
-
-let remaining = Math.floor((endTime - Date.now()) / 1000)
-
-if(remaining <= 0){
-clearInterval(timer)
-updateTimerDisplay(0)
-submitTest()
-return
+	timer = setInterval(() => {
+		const remaining = Math.floor((endTime - Date.now()) / 1000);
+		if (remaining <= 0) {
+			clearInterval(timer);
+			updateTimerDisplay(0);
+			submitTest();
+			return;
+		}
+		updateTimerDisplay(remaining);
+	}, 1000);
 }
 
-updateTimerDisplay(remaining)
-
-},1000)
-
+function updateTimerDisplay(seconds) {
+	const m = Math.floor(seconds / 60);
+	const s = seconds % 60;
+	document.getElementById("timer").textContent = `Time Left: ${m}m ${String(s).padStart(2, "0")}s`;
 }
 
-function updateTimerDisplay(seconds){
-
-let m = Math.floor(seconds/60)
-let s = seconds % 60
-
-document.getElementById("timer").innerText =
-`Time Left: ${m}m ${s}s`
-
-}
-function saveAnswer(option){
-
-userAnswers[currentIndex] = option
-
-document.getElementById("nextBtn").style.display="inline"
-// enable next button
-document.getElementById("nextBtn").disabled = false
-
+function updateProgress() {
+	const total = selectedQuestions.length || 1;
+	const current = currentIndex + 1;
+	const percent = Math.round((current / total) * 100);
+	progressFillEl.style.width = `${percent}%`;
+	progressTextEl.textContent = `Question ${current} of ${total}`;
+	progressPercentEl.textContent = `${percent}% complete`;
 }
 
-function showQuestion(){
-
-let q=selectedQuestions[currentIndex]
-
-let options = q.options.map(opt => ({
-text: opt,
-correct: opt === q.answer
-}))
-
-shuffleArray(options)
-
-let html=`<h3>Question ${currentIndex+1} of ${selectedQuestions.length}</h3>
-<h3>${q.q}</h3>`
-
-options.forEach(o=>{
-html+=`
-<label class="optionBox">
-<input type="radio" name="opt" value="${o.text}" onclick="saveAnswer('${o.text}')">
-<span>${o.text}</span>
-</label>
-`
-})
-
-document.getElementById("question-container").innerHTML=html
-
-// hide next button initially
-document.getElementById("nextBtn").style.display="none"
-
-// disable next button until option selected
-document.getElementById("nextBtn").disabled = true
-
-if(currentIndex==selectedQuestions.length-1)
- document.getElementById("nextBtn").innerText="Submit"
-
+function saveAnswer(option) {
+	userAnswers[currentIndex] = option;
+	nextBtnEl.classList.remove("hidden");
+	nextBtnEl.disabled = false;
+	answerStatusEl.textContent = "Answer saved for this question. Continue when you are ready.";
+	document.querySelectorAll(".option-box").forEach((box) => {
+		box.classList.toggle("selected", box.dataset.value === option);
+	});
 }
 
+function renderOptions(options) {
+	const optionsWrap = document.createElement("div");
+	optionsWrap.className = "options";
 
-function enableNext(){
- document.getElementById("nextBtn").style.display="inline"
+	options.forEach((optionText, optionIndex) => {
+		const label = document.createElement("label");
+		label.className = "option-box";
+		label.dataset.value = optionText;
+
+		const input = document.createElement("input");
+		input.type = "radio";
+		input.name = "opt";
+		input.value = optionText;
+		input.addEventListener("change", () => saveAnswer(optionText));
+
+		const optionLabel = document.createElement("span");
+		optionLabel.className = "option-label";
+		optionLabel.textContent = String.fromCharCode(65 + optionIndex) + ".";
+
+		const optionTextSpan = document.createElement("span");
+		optionTextSpan.className = "option-text";
+		optionTextSpan.textContent = optionText;
+
+		label.appendChild(input);
+		label.appendChild(optionLabel);
+		label.appendChild(optionTextSpan);
+		optionsWrap.appendChild(label);
+	});
+
+	return optionsWrap;
 }
 
+function showQuestion() {
+	const q = selectedQuestions[currentIndex];
+	const options = [...q.options];
+	shuffleArray(options);
 
-function nextQuestion(){
+	updateProgress();
+	questionContainerEl.innerHTML = "";
 
-if(currentIndex < selectedQuestions.length-1){
- currentIndex++
- showQuestion()
-}
-else{
- submitTest()
-}
+	const title = document.createElement("p");
+	title.className = "helper-text";
+	title.style.margin = "0 0 10px";
+	title.textContent = `Question ${currentIndex + 1}`;
 
-}
+	const questionTitle = document.createElement("h3");
+	questionTitle.className = "question-title";
+	questionTitle.textContent = q.q;
 
+	questionContainerEl.appendChild(title);
+	questionContainerEl.appendChild(questionTitle);
+	questionContainerEl.appendChild(renderOptions(options));
 
-function submitTest(){
-
-if(submitted) return
-submitted=true
-localStorage.removeItem("examStarted")
-clearInterval(timer)
-let score=0
-let analysis="<ol>"
-let analysisData=[]
-
-selectedQuestions.forEach((q,i)=>{
-
-let ans=userAnswers[i] || "Not Answered"
-
-if(ans===q.answer) score++
-
-analysisData.push({
-question:q.q,
-options:q.options,
-chosen:ans,
-correct:q.answer
-})
-
-analysis+=`<li>${q.q}<br>Your: ${ans}<br>Correct: ${q.answer}</li><br>`
-
-})
-
-analysis+="</ol>"
-
-let percent=((score/selectedQuestions.length)*100).toFixed(2)
-
-sendToSheet(score,percent,analysisData)
-
-document.getElementById("quiz").classList.add("hidden")
-document.getElementById("result").classList.remove("hidden")
-
-document.getElementById("scoreMsg").innerText=`Score: ${score}/${selectedQuestions.length}`
-document.getElementById("percentMsg").innerText=`Percentage: ${percent}%`
-
-document.getElementById("analysis").innerHTML =
-"Detailed response sheet will be sent to your email after 30 minutes.";
-
+	nextBtnEl.classList.add("hidden");
+	nextBtnEl.disabled = true;
+	nextBtnEl.textContent = currentIndex === selectedQuestions.length - 1 ? "Submit Test" : "Next Question";
+	answerStatusEl.textContent = "Select one option to continue.";
 }
 
-async function sendToSheet(score,percent,analysisData){
-
-try{
-
-let res = await fetch(GOOGLE_SCRIPT_URL,{
-method:"POST",
-keepalive:true,
-body:JSON.stringify({
-name:userName,
-appId:appId,
-email:userEmail,
-score:score,
-percent:percent,
-total:selectedQuestions.length,
-questions:analysisData
-}),
-headers:{"Content-Type":"text/plain"}
-})
-
-let text = await res.text()
-
-console.log("Server response:",text)
-
-}catch(err){
-
-console.error("Error sending result:",err)
-
+function nextQuestion() {
+	if (currentIndex < selectedQuestions.length - 1) {
+		currentIndex += 1;
+		showQuestion();
+	} else {
+		submitTest();
+	}
 }
 
+function submitTest() {
+	if (submitted) {
+		return;
+	}
+
+	submitted = true;
+	examStarted = false;
+	sessionStorage.removeItem("examStarted");
+	clearInterval(timer);
+
+	let score = 0;
+	const analysisData = [];
+
+	selectedQuestions.forEach((q, index) => {
+		const ans = userAnswers[index] || "Not Answered";
+		if (ans === q.answer) {
+			score += 1;
+		}
+
+		analysisData.push({
+			question: q.q,
+			options: q.options,
+			chosen: ans,
+			correct: q.answer
+		});
+	});
+
+	const percent = selectedQuestions.length ? ((score / selectedQuestions.length) * 100).toFixed(2) : "0.00";
+	const passed = Number(percent) >= getSettings().passPercentage;
+	sendToSheet(score, percent, analysisData);
+
+	document.getElementById("quiz").classList.add("hidden");
+	document.getElementById("result").classList.remove("hidden");
+
+	document.getElementById("scoreMsg").textContent = `${score}/${selectedQuestions.length}`;
+	document.getElementById("percentMsg").textContent = `${percent}% scored`;
+	document.getElementById("resultLineOne").textContent = `You answered ${score} out of ${selectedQuestions.length} questions correctly in ${activeExamId}.`;
+	document.getElementById("resultLineTwo").textContent = `This submission is saved only for exam ${activeExamId}.`;
+	document.getElementById("resultLineThree").textContent = "The response sheet will be sent by email after the exam's configured delay.";
+	resultStatusNoteEl.textContent = passed
+		? `Status: Passed. Required score was ${getSettings().passPercentage}%.`
+		: `Status: Below pass mark. Required score was ${getSettings().passPercentage}%.`;
+	resultStatusNoteEl.style.color = passed ? "#166534" : "#b91c1c";
 }
 
-
-// TAB SWITCH DETECTION
-
-document.addEventListener("visibilitychange",()=>{
-if(document.hidden && examStarted){
-document.getElementById("warning").innerText="Tab switch detected. Test submitted.";
-submitTest()
+async function sendToSheet(score, percent, analysisData) {
+	try {
+		await fetch(GOOGLE_SCRIPT_URL, {
+			method: "POST",
+			keepalive: true,
+			body: JSON.stringify({
+				type: "saveResult",
+				examId: activeExamId,
+				name: userName,
+				appId: appId,
+				email: userEmail,
+				score: score,
+				percent: percent,
+				total: selectedQuestions.length,
+				questions: analysisData
+			}),
+			headers: { "Content-Type": "text/plain" }
+		});
+	} catch (error) {
+		console.error("Error sending result:", error);
+	}
 }
-})
 
+function handleViolation(message) {
+	if (!examStarted || submitted) {
+		return;
+	}
 
-// FULLSCREEN EXIT DETECTION
+	violationCount += 1;
+	warningEl.classList.remove("hidden");
+	warningEl.textContent = `${message} Warning ${violationCount} of 2.`;
 
-document.addEventListener("fullscreenchange",()=>{
-if(!document.fullscreenElement && examStarted){
-document.getElementById("warning").innerText="Fullscreen exited. Test submitted.";
-submitTest()
+	if (violationCount >= 2) {
+		warningEl.textContent = `${message} The test is being submitted to protect the attempt.`;
+		submitTest();
+	}
 }
-})
-window.addEventListener("blur", function () {
-    if (examStarted) {
-        document.getElementById("warning").innerText =
-            "You left the exam window. Test submitted.";
-        submitTest();
-    }
+
+document.addEventListener("visibilitychange", () => {
+	if (document.hidden && examStarted) {
+		handleViolation("Tab switch detected.");
+	}
 });
 
-// DISABLE RIGHT CLICK
+document.addEventListener("fullscreenchange", () => {
+	if (!document.fullscreenElement && examStarted) {
+		handleViolation("Fullscreen was exited.");
+	}
+});
 
-document.addEventListener("contextmenu",e=>e.preventDefault())
+window.addEventListener("blur", () => {
+	if (examStarted) {
+		handleViolation("The exam window lost focus.");
+	}
+});
 
-// DISABLE COPY
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+document.addEventListener("copy", (e) => e.preventDefault());
+document.addEventListener("paste", (e) => e.preventDefault());
 
-document.addEventListener("copy",e=>e.preventDefault())
+document.addEventListener("keydown", (e) => {
+	if (e.key === "Escape" && examStarted) {
+		handleViolation("Escape key pressed.");
+	}
+	if (e.key === "F12") {
+		handleViolation("Developer tools shortcut detected.");
+	}
+	if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) {
+		handleViolation("Developer tools shortcut detected.");
+	}
+	if (e.ctrlKey && e.key.toLowerCase() === "u") {
+		handleViolation("View source shortcut detected.");
+	}
+	if (e.key === "F5") {
+		e.preventDefault();
+		handleViolation("Refresh shortcut detected.");
+	}
+});
 
-// DISABLE PASTE
+setInterval(() => {
+	const start = performance.now();
+	debugger;
+	const end = performance.now();
+	if (end - start > 100 && examStarted) {
+		handleViolation("Developer tools activity detected.");
+	}
+}, 1000);
 
-document.addEventListener("paste",e=>e.preventDefault())
+document.getElementById("examId").addEventListener("change", async (event) => {
+	setLoginError("");
+	const value = String(event.target.value || "").trim().toUpperCase();
+	event.target.value = value;
+	await fetchExamMeta(value);
+});
 
+document.getElementById("examId").addEventListener("blur", async (event) => {
+	const value = String(event.target.value || "").trim().toUpperCase();
+	event.target.value = value;
+	if (value) {
+		await fetchExamMeta(value);
+	}
+});
 
-// ESC KEY SUBMIT
-
-document.addEventListener("keydown",function(e){
-
-// ESC key
-if(e.key=="Escape" && examStarted){
-submitTest()
+const prefilledExamId = String(queryParams.get("examId") || "").trim().toUpperCase();
+if (prefilledExamId) {
+	document.getElementById("examId").value = prefilledExamId;
+	fetchExamMeta(prefilledExamId);
+} else {
+	updateUiFromMeta();
 }
-
-// F12
-if(e.key=="F12"){
-submitTest()
-}
-
-// CTRL+SHIFT+I
-if(e.ctrlKey && e.shiftKey && e.key=="I"){
-submitTest()
-}
-
-// CTRL+SHIFT+J
-if(e.ctrlKey && e.shiftKey && e.key=="J"){
-submitTest()
-}
-
-// CTRL+U (view source)
-if(e.ctrlKey && e.key=="u"){
-submitTest()
-}
-if(e.key=="F5"){
-e.preventDefault()
-submitTest()
-}
-})
-// DETECT DEVTOOLS OPEN
-
-setInterval(function(){
-
-let start = performance.now()
-
-debugger
-
-let end = performance.now()
-
-if(end - start > 100){
-
-if(examStarted){
-submitTest()
-}
-
-}
-
-},1000)
 </script>
 
 </body>
