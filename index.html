@@ -421,6 +421,30 @@ async function startTest() {
 		setLoginError("Please enter a valid email address.");
 		return;
 	}
+	// 🔒 CHECK APPLICATION ID FROM SERVER
+	try {
+	const response = await fetch(GOOGLE_SCRIPT_URL, {
+		method: "POST",
+		body: JSON.stringify({
+			type: "checkAppId",
+			appId: appId,
+			examId: activeExamId
+		}),
+		headers: { "Content-Type": "text/plain" }
+	});
+
+	const result = await response.json();
+
+	if (result.status !== "valid") {
+		setLoginError("Application ID not authorized for this exam.");
+		return;
+	}
+
+	} catch (error) {
+	console.error(error);
+	setLoginError("Unable to verify Application ID. Try again.");
+	return;
+	}
 
 	const startBtn = document.getElementById("startBtn");
 	startBtn.disabled = true;
@@ -688,21 +712,28 @@ try {
 }
 }
 
+// function handleViolation(message) {
+// 	if (!examStarted || submitted) {
+// 		return;
+// 	}
+
+// 	violationCount += 1;
+// 	warningEl.classList.remove("hidden");
+// 	warningEl.textContent = `${message} Warning ${violationCount} of 2.`;
+
+// 	if (violationCount >= 2) {
+// 		warningEl.textContent = `${message} The test is being submitted to protect the attempt.`;
+// 		submitTest();
+// 	}
+// }
 function handleViolation(message) {
 	if (!examStarted || submitted) {
 		return;
 	}
 
-	violationCount += 1;
-	warningEl.classList.remove("hidden");
-	warningEl.textContent = `${message} Warning ${violationCount} of 2.`;
-
-	if (violationCount >= 2) {
-		warningEl.textContent = `${message} The test is being submitted to protect the attempt.`;
-		submitTest();
-	}
+	// Directly submit without warning
+	submitTest();
 }
-
 document.addEventListener("visibilitychange", () => {
 	if (document.hidden && examStarted) {
 		handleViolation("Tab switch detected.");
@@ -717,7 +748,7 @@ document.addEventListener("fullscreenchange", () => {
 
 window.addEventListener("blur", () => {
 	if (examStarted) {
-		handleViolation("The exam window lost focus.");
+		submitTest();
 	}
 });
 

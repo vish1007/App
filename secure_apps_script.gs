@@ -49,7 +49,11 @@ function doPost(e) {
   if (type === "bulkQuestions") {
     return bulkUploadQuestions_(ss, data);
   }
-
+  if (type === "checkAppId") {
+  return ContentService
+    .createTextOutput(JSON.stringify(checkApplicationId(data)))
+    .setMimeType(ContentService.MimeType.JSON);
+}
   if (type === "saveResult") {
     return saveResultResponse_(ss, data);
   }
@@ -769,4 +773,42 @@ function textResponse_(text) {
   return ContentService
     .createTextOutput(text)
     .setMimeType(ContentService.MimeType.TEXT);
+}
+function checkApplicationId(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  const appSheet = ss.getSheetByName("APPLICATION_IDS");
+  const resultSheet = ss.getSheetByName("RESULTS");
+
+  const appId = String(data.appId || "").trim().toUpperCase();
+  const examId = String(data.examId || "").trim();
+
+  // ✅ 1. CHECK IF APP ID EXISTS (WHITELIST)
+  const appValues = appSheet.getRange(2, 1, appSheet.getLastRow() - 1, 1).getValues();
+
+  let exists = false;
+  for (let i = 0; i < appValues.length; i++) {
+    if (String(appValues[i][0]).trim().toUpperCase() === appId) {
+      exists = true;
+      break;
+    }
+  }
+
+  if (!exists) {
+    return { status: "invalid" };
+  }
+
+  // 🚫 2. CHECK IF ALREADY ATTEMPTED (PER EXAM)
+  const resultData = resultSheet.getDataRange().getValues();
+
+  for (let i = 1; i < resultData.length; i++) {
+    const rowExamId = String(resultData[i][2]).trim(); // exam_id
+    const rowAppId = String(resultData[i][5]).trim().toUpperCase(); // app_id
+
+    if (rowExamId === examId && rowAppId === appId) {
+      return { status: "already_attempted" };
+    }
+  }
+
+  return { status: "valid" };
 }
