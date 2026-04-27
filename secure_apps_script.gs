@@ -204,7 +204,8 @@ function createExamResponse_(ss, data) {
     settings.passPercentage,
     settings.appIdPrefix,
     "YES",
-    new Date()
+    new Date(),
+    settings.sendResponseSheet ? "YES" : "NO"
   ]);
 
   return jsonResponse_({
@@ -294,6 +295,7 @@ function saveExamSettingsResponse_(ss, data) {
   examsSheet.getRange(row, 10).setValue(settings.passPercentage);
   examsSheet.getRange(row, 11).setValue(settings.appIdPrefix);
   examsSheet.getRange(row, 12).setValue(data.active === false ? "NO" : "YES");
+  examsSheet.getRange(row, 14).setValue(settings.sendResponseSheet ? "YES" : "NO");
 
   return jsonResponse_({
     status: "success",
@@ -428,19 +430,19 @@ function checkAndSendEmails() {
   const now = new Date();
 
   for (let i = 1; i < rows.length; i++) {
-    const submitTime = new Date(rows[i][0]);
-    const examId = String(rows[i][1] || "").trim();
-    const studentName = rows[i][3];
-    const appId = rows[i][4];
-    const email = rows[i][5];
-    const score = rows[i][6];
-    const percent = rows[i][7];
-    const total = rows[i][8];
-    const answers = JSON.parse(rows[i][9] || "[]");
-    const emailSent = rows[i][10] || "NO";
+    const submitTime = new Date(rows[i][1]);
+    const examId = String(rows[i][2] || "").trim();
+    const studentName = rows[i][4];
+    const appId = rows[i][5];
+    const email = rows[i][6];
+    const score = rows[i][7];
+    const percent = rows[i][8];
+    const total = rows[i][9];
+    const answers = JSON.parse(rows[i][10] || "[]");
+    const emailSent = rows[i][11] || "NO";
     const exam = getExamById_(ss, examId);
 
-    if (!exam || emailSent === "YES") {
+    if (!exam || !exam.sendResponseSheet || emailSent === "YES") {
       continue;
     }
 
@@ -495,7 +497,7 @@ function checkAndSendEmails() {
       attachments: [pdf]
     });
 
-    resultsSheet.getRange(i + 1, 11).setValue("YES");
+    resultsSheet.getRange(i + 1, 12).setValue("YES");
   }
 }
 
@@ -527,13 +529,16 @@ function examFromRow_(row, rowIndex) {
     examSubtitle: String(row[3] || "Answer each question carefully").trim(),
     examStart: safeDate_(row[4], new Date()),
     examEnd: safeDate_(row[5], new Date(Date.now() + 60 * 60 * 1000)),
-    mailDelayMinutes: Math.max(0, Number(row[6]) || DEFAULT_MAIL_DELAY_MINUTES),
+    mailDelayMinutes: row[6] === "" || row[6] === null || row[6] === undefined
+      ? DEFAULT_MAIL_DELAY_MINUTES
+      : Math.max(0, Number(row[6]) || 0),
     durationMinutes: Math.max(1, Number(row[7]) || 10),
     questionLimit: Math.max(1, Number(row[8]) || 10),
     passPercentage: Math.min(100, Math.max(1, Number(row[9]) || 50)),
     appIdPrefix: String(row[10] || "CDS").trim().toUpperCase(),
     active: String(row[11] || "YES").toUpperCase() !== "NO",
-    createdAt: safeDate_(row[12], new Date())
+    createdAt: safeDate_(row[12], new Date()),
+    sendResponseSheet: String(row[13] || "NO").toUpperCase() === "YES"
   };
 }
 
@@ -623,10 +628,14 @@ function normalizeExamSettings_(settings) {
   const appIdPrefix = String(settings.appIdPrefix || "CDS").trim().toUpperCase();
   const examStart = new Date(settings.examStart);
   const examEnd = new Date(settings.examEnd);
-  const mailDelayMinutes = Math.max(0, Number(settings.mailDelayMinutes) || DEFAULT_MAIL_DELAY_MINUTES);
+  const rawMailDelayMinutes = Number(settings.mailDelayMinutes);
+  const mailDelayMinutes = Number.isFinite(rawMailDelayMinutes)
+    ? Math.max(0, rawMailDelayMinutes)
+    : DEFAULT_MAIL_DELAY_MINUTES;
   const durationMinutes = Math.max(1, Number(settings.durationMinutes) || 10);
   const questionLimit = Math.max(1, Number(settings.questionLimit) || 10);
   const passPercentage = Math.min(100, Math.max(1, Number(settings.passPercentage) || 50));
+  const sendResponseSheet = settings.sendResponseSheet === true || String(settings.sendResponseSheet || "").toUpperCase() === "YES";
 
   if (!examTitle) {
     return { valid: false, message: "Exam title is required." };
@@ -646,7 +655,8 @@ function normalizeExamSettings_(settings) {
     durationMinutes: durationMinutes,
     questionLimit: questionLimit,
     passPercentage: passPercentage,
-    appIdPrefix: appIdPrefix || "CDS"
+    appIdPrefix: appIdPrefix || "CDS",
+    sendResponseSheet: sendResponseSheet
   };
 }
 
@@ -709,7 +719,7 @@ function setupAdmin() {
 
 function setupSheetHeaders() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  ss.getSheetByName("Exams").getRange(1, 1, 1, 13).setValues([[
+  ss.getSheetByName("Exams").getRange(1, 1, 1, 14).setValues([[
     "exam_id",
     "teacher_username",
     "exam_title",
@@ -722,7 +732,8 @@ function setupSheetHeaders() {
     "pass_percentage",
     "app_id_prefix",
     "active",
-    "created_at"
+    "created_at",
+    "send_response_sheet"
   ]]);
 
   ss.getSheetByName("Questions").getRange(1, 1, 1, 7).setValues([[
@@ -735,7 +746,8 @@ function setupSheetHeaders() {
     "answer"
   ]]);
 
-  ss.getSheetByName("Results").getRange(1, 1, 1, 11).setValues([[
+  ss.getSheetByName("Results").getRange(1, 1, 1, 12).setValues([[
+    "submission_id",
     "submit_time",
     "exam_id",
     "teacher_username",

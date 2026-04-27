@@ -134,6 +134,14 @@
 				</div>
 
 				<div class="field">
+					<label for="newSendResponseSheet">Send Response Sheet PDF?</label>
+					<select id="newSendResponseSheet" onchange="syncResponseSheetDelayControls()">
+						<option value="NO" selected>No</option>
+						<option value="YES">Yes</option>
+					</select>
+				</div>
+
+				<div class="field">
 					<label for="newMailDelay">PDF Mail Delay (Minutes)</label>
 					<input id="newMailDelay" type="number" min="0" max="1440" value="30">
 				</div>
@@ -199,6 +207,14 @@
 				<div class="field">
 					<label for="examEndAt">Exam End Time</label>
 					<input id="examEndAt" type="datetime-local">
+				</div>
+
+				<div class="field">
+					<label for="sendResponseSheet">Send Response Sheet PDF?</label>
+					<select id="sendResponseSheet" onchange="syncResponseSheetDelayControls()">
+						<option value="NO">No</option>
+						<option value="YES">Yes</option>
+					</select>
 				</div>
 
 				<div class="field">
@@ -275,7 +291,7 @@ Answer: A</div>
 
 <script>
 const ADMIN_SESSION_KEY = "qappAdminSession";
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmhBOIiAolG49_mhHS8Fg_9p_io-mM-05m2Y-1OcFqAgLiw0Utf32GCW5mrQ1SDk-T4Q/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCGklgrTO7lKBGINlwqV3Ve_E8uIukmjuDKEjJ9YyBScjdBG_EkV2xqKOwSWLbYpcEKw/exec";
 
 const bulkQuestionsEl = document.getElementById("bulkQuestions");
 const questionCountHintEl = document.getElementById("questionCountHint");
@@ -372,6 +388,21 @@ function toIsoFromLocalInput(value) {
 	return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
+function syncResponseSheetDelayControls() {
+	const newSend = document.getElementById("newSendResponseSheet");
+	const newDelay = document.getElementById("newMailDelay");
+	const selectedSend = document.getElementById("sendResponseSheet");
+	const selectedDelay = document.getElementById("mailDelayMinutes");
+
+	if (newSend && newDelay) {
+		newDelay.disabled = newSend.value !== "YES";
+	}
+
+	if (selectedSend && selectedDelay) {
+		selectedDelay.disabled = selectedSend.value !== "YES";
+	}
+}
+
 async function callAdminApi(payload) {
 	if (!adminSession || !adminSession.sessionToken) {
 		throw new Error("Missing admin session");
@@ -435,11 +466,14 @@ async function loadExamList() {
 }
 
 function buildSettingsFrom(prefix) {
+	const sendResponseSheetEl = document.getElementById(`${prefix}SendResponseSheet`);
+
 	return {
 		examTitle: document.getElementById(`${prefix}ExamTitle`).value.trim(),
 		examSubtitle: document.getElementById(`${prefix}ExamSubtitle`).value.trim() || "Answer each question carefully",
 		examStart: toIsoFromLocalInput(document.getElementById(`${prefix}ExamStart`).value),
 		examEnd: toIsoFromLocalInput(document.getElementById(`${prefix}ExamEnd`).value),
+		sendResponseSheet: sendResponseSheetEl ? sendResponseSheetEl.value === "YES" : false,
 		mailDelayMinutes: Math.max(0, Number(document.getElementById(`${prefix}MailDelay`).value) || 0),
 		durationMinutes: Math.max(1, Number(document.getElementById(`${prefix}Duration`).value) || 1),
 		questionLimit: Math.max(1, Number(document.getElementById(`${prefix}QuestionLimit`).value) || 1),
@@ -456,12 +490,14 @@ function fillSelectedExam(exam, examLink, questionCount) {
 	document.getElementById("examSubtitle").value = exam.examSubtitle || "";
 	document.getElementById("examStartAt").value = toLocalDatetimeInputValue(exam.examStart);
 	document.getElementById("examEndAt").value = toLocalDatetimeInputValue(exam.examEnd);
+	document.getElementById("sendResponseSheet").value = exam.sendResponseSheet ? "YES" : "NO";
 	document.getElementById("mailDelayMinutes").value = exam.mailDelayMinutes;
 	document.getElementById("durationMinutes").value = exam.durationMinutes;
 	document.getElementById("questionLimit").value = exam.questionLimit;
 	document.getElementById("passPercentage").value = exam.passPercentage;
 	document.getElementById("appIdPrefix").value = exam.appIdPrefix;
 	document.getElementById("selectedQuestionCount").value = String(questionCount ?? "");
+	syncResponseSheetDelayControls();
 	setSelectedExamStatus(`Loaded exam ${exam.examId}. Share this link or ID with students for this exam only.`, "success");
 	renderExamOptions();
 }
@@ -540,6 +576,7 @@ async function saveExamSettings() {
 		examSubtitle: document.getElementById("examSubtitle").value.trim(),
 		examStart: toIsoFromLocalInput(document.getElementById("examStartAt").value),
 		examEnd: toIsoFromLocalInput(document.getElementById("examEndAt").value),
+		sendResponseSheet: document.getElementById("sendResponseSheet").value === "YES",
 		mailDelayMinutes: Math.max(0, Number(document.getElementById("mailDelayMinutes").value) || 0),
 		durationMinutes: Math.max(1, Number(document.getElementById("durationMinutes").value) || 1),
 		questionLimit: Math.max(1, Number(document.getElementById("questionLimit").value) || 1),
@@ -700,6 +737,7 @@ async function login() {
 
 bulkQuestionsEl.addEventListener("input", updateLineCount);
 updateLineCount();
+syncResponseSheetDelayControls();
 
 if (adminSession && adminSession.sessionToken) {
 	showWorkspace();
