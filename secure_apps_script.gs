@@ -133,7 +133,7 @@ function getAttemptStatusResponse_(ss, examId, appId) {
   const data = sheet.getDataRange().getValues();
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][1]).trim() === String(examId).trim() && String(data[i][4]).trim() === String(appId).trim()) {
+    if (String(data[i][2]).trim() === String(examId).trim() && String(data[i][5]).trim() === String(appId).trim()) {
       return textResponse_("exists");
     }
   }
@@ -778,13 +778,26 @@ function checkApplicationId(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   const appSheet = ss.getSheetByName("APPLICATION_IDS");
-  const resultSheet = ss.getSheetByName("RESULTS");
+  const resultSheet = ss.getSheetByName("Results");
 
   const appId = String(data.appId || "").trim().toUpperCase();
   const examId = String(data.examId || "").trim();
 
+  if (!appSheet) {
+    return { status: "invalid", message: "APPLICATION_IDS sheet not found" };
+  }
+
+  if (!resultSheet) {
+    return { status: "invalid", message: "Results sheet not found" };
+  }
+
   // ✅ 1. CHECK IF APP ID EXISTS (WHITELIST)
-  const appValues = appSheet.getRange(2, 1, appSheet.getLastRow() - 1, 1).getValues();
+  const lastAppRow = appSheet.getLastRow();
+  if (lastAppRow < 2) {
+    return { status: "invalid" };
+  }
+
+  const appValues = appSheet.getRange(2, 1, lastAppRow - 1, 1).getValues();
 
   let exists = false;
   for (let i = 0; i < appValues.length; i++) {

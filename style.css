@@ -418,6 +418,9 @@ button:disabled {
 	margin: 0 0 12px;
 	font-size: clamp(1.2rem, 2vw, 1.6rem);
 	white-space: pre-wrap;
+	font-family: "Courier New", monospace;
+	line-height: 1.6;
+	tab-size: 4;
 }
 
 .question-text {
@@ -553,6 +556,36 @@ textarea {
 	font-size: 14px;
 	line-height: 1.7;
 	white-space: pre-wrap;
+}
+.loading-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.75);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 99999;
+}
+
+.loading-box {
+	background: white;
+	padding: 30px;
+	border-radius: 20px;
+	text-align: center;
+	max-width: 400px;
+	width: 90%;
+}
+
+.loading-box h2 {
+	margin-bottom: 12px;
+}
+
+.loading-box p {
+	color: #555;
+}
+
+.hidden {
+	display: none !important;
 }
 
 @media (max-width: 900px) {

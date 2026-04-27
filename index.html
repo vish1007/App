@@ -9,7 +9,12 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+<div id="loadingOverlay" class="loading-overlay hidden">
+	<div class="loading-box">
+		<h2 id="loadingTitle">Exam is loading...</h2>
+		<p id="loadingMessage">Please wait while your exam settings are being prepared.</p>
+	</div>
+</div>
 <main class="app-shell">
 	<section class="hero" id="landingHero">
 		<div class="hero-panel">
@@ -94,7 +99,7 @@
 
 		<div class="countdown-box" id="countdownBox">
 			<p class="helper-text" style="margin:0;color:inherit;">Test starting in</p>
-			<p class="countdown-number" id="countNumber">15</p>
+			<p class="countdown-number" id="countNumber">5</p>
 			<p class="helper-text" style="margin:0;color:inherit;">Please stay on this screen while the exam is prepared.</p>
 		</div>
 
@@ -222,7 +227,22 @@ const loginSummaryEl = document.getElementById("loginSummary");
 const appIdHelpEl = document.getElementById("appIdHelp");
 const quizHeadingEl = document.getElementById("quizHeading");
 const resultStatusNoteEl = document.getElementById("resultStatusNote");
+function showLoading(title, message) {
+	const overlay = document.getElementById("loadingOverlay");
+	document.getElementById("loadingTitle").textContent = title;
+	document.getElementById("loadingMessage").textContent = message;
+	overlay.classList.remove("hidden");
 
+	// Disable all form controls
+	document.querySelectorAll("button, input").forEach(el => el.disabled = true);
+}
+
+function hideLoading() {
+	document.getElementById("loadingOverlay").classList.add("hidden");
+
+	// Re-enable controls
+	document.querySelectorAll("button, input").forEach(el => el.disabled = false);
+}
 if (sessionStorage.getItem("examStarted") === "true") {
 	alert("Page refresh detected. Exam already started.");
 	document.body.innerHTML = "<main class='app-shell'><section class='card'><h2 style='color:#b91c1c;'>Exam session closed due to refresh.</h2><p class='helper-text'>To protect the attempt, the current session has been locked. Please contact the exam administrator if this happened by mistake.</p></section></main>";
@@ -341,7 +361,7 @@ function blockStart(message) {
 }
 
 function startCountdown() {
-	let count = 15;
+	let count = 5;
 	countdownBoxEl.style.display = "block";
 	countNumberEl.textContent = String(count);
 
@@ -379,7 +399,6 @@ async function startTest() {
 	enterFullscreen();
 	currentIndex = 0;
 	userAnswers = {};
-	time = getSettings().durationMinutes * 60;
 	submitted = false;
 	questionsReady = false;
 	startGateBlocked = false;
@@ -451,9 +470,31 @@ async function startTest() {
 	startBtn.textContent = "Preparing Test...";
 	setLoginStatus(`Checking eligibility for ${activeExamId}...`);
 
-	startCountdown();
-	loadExamData();
+	showLoading(
+		"Exam is loading...",
+		"Please wait while your exam settings and questions are loading."
+	);
+
+	await loadExamData();
+
+	if (!questionsReady) {
+		hideLoading();
+		return;
+	}
+
+	hideLoading();
+
+	showLoading(
+		"Exam loaded successfully",
+		"Your countdown will begin now."
+	);
+
+	setTimeout(() => {
+		hideLoading();
+		startCountdown();
+	}, 1500);
 }
+
 
 async function loadExamData() {
 	try {
@@ -482,6 +523,12 @@ async function loadExamData() {
 		}
 
 		examMeta = data.exam;
+		if (!examMeta || !examMeta.durationMinutes) {
+			blockStart("Exam timing could not load.");
+			return;
+		}
+
+		time = Number(examMeta.durationMinutes) * 60;
 		questions = Array.isArray(data.questions) ? data.questions : [];
 		updateUiFromMeta();
 
@@ -600,7 +647,10 @@ function showQuestion() {
 
 	const questionTitle = document.createElement("h3");
 	questionTitle.className = "question-title";
-	questionTitle.textContent = q.q;
+	questionTitle.innerHTML = q.q
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 
 	questionContainerEl.appendChild(title);
 	questionContainerEl.appendChild(questionTitle);
